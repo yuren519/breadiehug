@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Breadie Hug - 碳水实验室</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 根部背景锁定：防闪烁最高优先级 -->
+    <style>html, body { background-color: #F9F6E5 !important; visibility: hidden; }</style>
+    <!-- 字体：MiSans + Space Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <!-- 波普风格字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <!-- MiSans 字体 -->
+    <link href="https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Normal.min.css" rel="stylesheet">
+    <script src="js/assets.js"></script>
+    <style>
+        :root { --cream: #F9F6E5; --blue: #002FA7; --black: #1A1A1A; }
+
+        html {
+            background-color: #F9F6E5;
+        }
+
+        /* 全局使用 MiSans */
+        body { 
+            font-family: 'MiSans', 'MiSans Normal', 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background-color: var(--cream); 
+            color: var(--black);
+            font-weight: 400;
+            /* 初始进入时先关闭复杂样式 */
+            backdrop-filter: none;
+            /* 防闪烁策略 */
+            opacity: 0;
+        }
+
+        /* 防闪烁显示类 */
+        .is-ready {
+            opacity: 1;
+            transition: opacity 0.2s ease-in;
+        }
+
+        /* 标题用 MiSans Medium */
+        .font-heading { 
+            font-family: 'MiSans', 'MiSans Normal', sans-serif;
+            font-weight: 500;
+        }
+
+        .font-fun { font-family: 'ZCOOL KuaiLe', cursive; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+
+        /* Futura 用于大标题 */
+        .font-futura {
+            font-family: 'Futura', 'Futura PT', 'Futura Std', 'Century Gothic', 'Avenir Next', 'Helvetica Neue', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        /* 页面过渡动画 */
+        .page-transition {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+        
+        .page-transition.active {
+            opacity: 1;
+        }
+
+        /* 入场动效 */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.2s ease-in forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-btn { 
+            border: 2px solid var(--black); 
+            border-radius: 12px; 
+            background: white; 
+            transition: all 0.2s; 
+            cursor: pointer; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            padding: 8px 16px;
+        }
+        
+        .tab-btn.active { 
+            background: var(--blue); 
+            color: white; 
+            box-shadow: 4px 4px 0 var(--black); 
+            transform: translateY(-2px); 
+        }
+
+        .control-panel { 
+            background: white; 
+            border: 2px solid var(--black); 
+            border-radius: 20px; 
+            box-shadow: 4px 4px 0 rgba(0,47,167,0.15); 
+        }
+        
+        .input-field { 
+            border: 2px solid var(--black); 
+            border-radius: 8px; 
+            padding: 8px 12px; 
+            width: 100%; 
+            font-size: 14px; 
+            outline: none; 
+            background: white;
+            font-family: 'MiSans', 'MiSans Normal', sans-serif;
+        }
+
+        .input-field:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(0, 47, 167, 0.1);
+        }
+
+        #poster { 
+            max-width: 670px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 40px 30px; 
+            position: relative; 
+            border: 2px solid var(--black);
+            box-shadow: 0 0 50px rgba(0,0,0,0.04);
+        }
+
+        .blue-marker {
+            background: var(--blue);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Mode Switch Styles */
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: 24px;
+            border: 2px solid var(--black);
+        }
+        .mode-option {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mode-option.active {
+            background: var(--blue);
+            color: white;
+        }
+        .mode-option:not(.active) {
+            opacity: 0.5;
+        }
+
+        /* 胶囊按钮 */
+        .capsule {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--black);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 2px;
+            background: white;
+            font-family: 'Space Mono', monospace;
+        }
+        .capsule:hover {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+        .capsule-group {
+            margin-bottom: 8px;
+        }
+        .capsule-label {
+            font-size: 9px;
+            opacity: 0.5;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        /* 预览区 - 模式A: 碳水存根（2x2田字格 3:5） */
+        #previewA {
+            width: 360px;
+            margin: 0 auto;
+            background: white;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 300px 300px;
+            border: 1px solid var(--black);
+        }
+        .grid-cell {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 3 / 5;
+            background: #4a5568;
+        }
+        /* 左上格 */
+        .grid-cell:nth-child(1) {
+            background: #C2E9FF; /* 天空蓝 */
+            color: #3A2B20;
+        }
+        /* 右上格 */
+        .grid-cell:nth-child(2) {
+            background: #F1F1C1; /* 淡抹茶黄 */
+            color: #3A2B20;
+        }
+        /* 左下格 */
+        .grid-cell:nth-child(3) {
+            background: #F1F1C1; /* 淡抹茶黄 */
+            color: #3A2B20;
+        }
+        /* 右下格 */
+        .grid-cell:nth-child(4) {
+            background: #C2E9FF; /* 天空蓝 */
+            color: #3A2B20;
+        }
+        .grid-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+        .grid-content {
+            position: absolute;
+            inset: 0;
+            padding: 16px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 2;
+            text-align: left;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+        }
+        .step-num {
+            font-size: 36px;
+            font-weight: 400;
+            font-family: 'MiSans', sans-serif;
+            letter-spacing: -0.05em;
+        }
+        .title-group {
+            margin-top: 6px;
+            border-left: 3px solid var(--blue);
+            padding-left: 8px;
+        }
+        .step-title-zh {
+            font-size: 15px;
+            font-weight: 500;
+            font-family: 'MiSans', sans-serif;
+        }
+        .step-title-en {
+            font-size: 9px;
+            opacity: 0.8;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 2px;
+            font-family: 'Space Mono', monospace;
+        }
+        .step-desc {
+            font-size: 10px;
+            line-height: 1.5;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+        .step-desc-en {
+            font-size: 8px;
+            opacity: 0.7;
+            margin-top: 4px;
+            font-style: italic;
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* 预览区 - 模式B: 主厨备忘（单张大图 3:5） */
+        #previewB {
+            width: 360px;
+            margin: 0 auto;
+            background: #FFFBEA;
+            aspect-ratio: 3/5;
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+        #previewB img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+        .process-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(58,43,32,0.1) 0%, rgba(58,43,32,0.3) 100%);
+            z-index: 1;
+        }
+        .process-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            color: #3A2B20;
+            font-size: 9px;
+            z-index: 2;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.05em;
+        }
+        .process-title {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            color: #3A2B20;
+            z-index: 2;
+        }
+        .process-big {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 16px;
+            font-family: 'Futura', 'Futura PT', 'Futura Std', 'Century Gothic', 'Avenir Next', 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            line-height: 0.95;
+        }
+        .process-desc {
+            font-size: 9px;
+            line-height: 1.7;
+            opacity: 0.85;
+            font-weight: 400;
+            max-height: 140px;
+            overflow: hidden;
+            padding-right: 10px;
+        }
+        .process-footer {
+            position: absolute;
+            bottom: 16px;
+            left: 20px;
+            right: 20px;
+            color: #3A2B20;
+            font-size: 7px;
+            opacity: 0.7;
+            text-align: center;
+            z-index: 2;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.15em;
+        }
+
+        /* Text sizing rules for poster exports */
+        .poster-text {
+            font-family: 'MiSans', sans-serif;
+            font-weight: 400;
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .poster-text.long {
+            font-size: 7px;
+        }
+
+        .poster-title {
+            font-family: 'Futura', 'Futura PT', 'Futura Std', 'Century Gothic', 'Avenir Next', 'Helvetica Neue', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32 page-transition">
+
+    <!-- Header -->
+    <header class="px-6 pt-10 pb-6 text-center">
+        <div class="inline-block bg-[var(--blue)] text-white px-2 py-0.5 rounded text-[10px] font-bold mb-2 uppercase tracking-widest">Breadie Lab</div>
+        <h1 class="text-3xl font-bold" style="font-family: 'Archivo Black', sans-serif;">
+            <span style="color: var(--black);">碳水实验室*</span> 🥨🥖⚖️
+        </h1>
+        <p class="text-sm opacity-50 mt-1" style="font-family: 'MiSans', sans-serif;">贴贴为你签发公报 ✨</p>
+        
+        <!-- Tab 切换 -->
+        <div class="flex gap-3 mt-6">
+            <button class="tab-btn active flex-1 py-3 px-4 font-bold flex flex-col items-center" data-tab="collection" onclick="switchTab('collection')">
+                <span class="text-sm font-fun">碳水收集</span>
+                <span class="text-[8px] opacity-50 uppercase">Collection</span>
+            </button>
+            <button class="tab-btn flex-1 py-3 px-4 font-bold flex flex-col items-center" data-tab="rd" onclick="switchTab('rd')">
+                <span class="text-sm font-fun">自制研发</span>
+                <span class="text-[8px] opacity-50 uppercase">R&D Lab</span>
+            </button>
+            <button class="tab-btn flex-1 py-3 px-4 font-bold flex flex-col items-center" data-tab="highlight" onclick="switchTab('highlight')">
+                <span class="text-sm font-fun">月度测测</span>
+                <span class="text-[8px] opacity-50 uppercase">Monthly</span>
+            </button>
+        </div>
+    </header>
+
+        <main class="flex flex-col items-center justify-center w-full px-6" style="min-height: 100vh; background: var(--cream);">
+        <!-- 碳水收集 Tab -->
+        <div id="collectionPanel" class="tab-panel">
+            <div id="poster" class="shadow-2xl">
+                <div class="flex justify-between items-end border-b-2 border-black pb-3 mb-6">
+                    <div class="text-[8px] opacity-30 font-mono">REC-ID: B-20260315</div>
+                    <div class="text-right text-[8px] opacity-30 font-mono">DATE: <span id="dateDisplay">2026.03.15</span></div>
+                </div>
+
+                <div id="listPreview" class="space-y-8"></div>
+
+                <div class="mt-8 pt-6 border-t border-dashed border-gray-300">
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="opacity-40">项目数量 / Items</span>
+                        <span class="font-bold font-mono" id="totalItems">0</span>
+                    </div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="opacity-40">总计金额 / Total</span>
+                        <span class="font-bold font-mono" id="totalAmount">¥0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="opacity-40">找零 / Change</span>
+                        <span class="text-[#e74c3c] font-bold">100% 的幸福感</span>
+                    </div>
+                </div>
+
+                <div class="mt-10 flex flex-col items-center gap-2">
+                    <p class="font-bold text-lg">@BreadieHug</p>
+                    <div class="text-[10px] tracking-[0.6em] font-bold opacity-10 uppercase font-mono">breadiehug*</div>
+                </div>
+            </div>
+
+            <div class="py-12 flex items-center justify-center opacity-10">
+                <span class="text-xs tracking-[1em]">✦ ✦ ✦</span>
+            </div>
+
+            <div class="control-panel p-6">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-6">
+                    <span class="text-xs font-bold font-fun">清单录入 / ENTRY</span>
+                    <div class="flex gap-3">
+                        <button onclick="fillDemo()" class="text-[10px] font-bold text-[var(--blue)] underline">✨ 示例</button>
+                        <button onclick="addBreadItem()" class="text-[10px] font-bold text-[var(--blue)] underline">+ 添加</button>
+                    </div>
+                </div>
+                <div id="inputsContainer" class="space-y-4"></div>
+            </div>
+
+            <button onclick="savePoster()" id="saveBtn" class="w-full mt-8 py-5 bg-[var(--blue)] text-white border-2 border-black rounded-2xl font-bold text-sm tracking-[0.2em] shadow-[0px_4px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                GENERATE / 生成海报
+            </button>
+        </div>
+
+        <!-- 自制研发 Tab -->
+        <div id="rdPanel" class="tab-panel hidden">
+            <!-- 模式切换 -->
+            <div class="flex justify-center mb-6">
+                <div class="mode-switch">
+                    <div class="mode-option active" onclick="switchMode('A')" id="modeA">碳水存根</div>
+                    <div class="mode-option" onclick="switchMode('B')" id="modeB">主厨备忘</div>
+                </div>
+            </div>
+
+            <!-- 预览区 - 模式A: 碳水存根（2x2田字格 3:5） -->
+            <div id="previewA" class="shadow-2xl"></div>
+
+            <!-- 预览区 - 模式B: 主厨备忘（单张大图 3:5） -->
+            <div id="previewB" class="shadow-2xl">
+                <div class="process-overlay"></div>
+                <div class="process-header">
+                    <span>@BreadieHug</span>
+                    <span id="batchNo">[BATCH_NO. 2026_0315_01]</span>
+                </div>
+                <div class="process-title">
+                    <div class="process-big" id="processBig">PROCESS</div>
+                    <div class="process-desc" id="processDesc">点击上方胶囊按钮选择当前烘焙步骤，或输入自定义备注记录详细过程...</div>
+                </div>
+                <div class="process-footer">BREADIE HUG LABORATORY</div>
+            </div>
+
+            <div class="py-10 flex items-center justify-center opacity-10">
+                <span class="text-xs tracking-[1em]">✦ ✦ ✦</span>
+            </div>
+
+            <!-- 输入面板 -->
+            <div class="control-panel p-6 space-y-6" id="inputContainer"></div>
+
+            <button onclick="generatePoster()" id="saveBtn" class="w-full mt-8 py-5 bg-[var(--blue)] text-white border-2 border-black rounded-2xl font-bold text-sm tracking-[0.2em] shadow-[0px_4px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                GENERATE POSTER / 生成海报
+            </button>
+        </div>
+
+        <!-- 月度测测面板 -->
+<div id="highlightPanel" class="tab-panel hidden">
+    <!-- 月份控制 -->
+    <div class="flex justify-center items-center gap-4 mb-6">
+        <button onclick="changeMonth(-1)" style="width:40px;height:40px;border:2px solid #1A1A1A;background:white;font-family:Space Mono;font-size:16px;font-weight:700;cursor:pointer;">←</button>
+        <span id="monthDisplay" style="font-family:Archivo Black;font-size:16px;min-width:100px;text-align:center;border:2px solid #1A1A1A;padding:6px 12px;background:white;">MAR 2026</span>
+        <button onclick="changeMonth(1)" style="width:40px;height:40px;border:2px solid #1A1A1A;background:white;font-family:Space Mono;font-size:16px;font-weight:700;cursor:pointer;">→</button>
+    </div>
+
+    <!-- 波普海报 360x480 -->
+    <div style="width:360px;height:480px;margin:0 auto;background:white;border:2px solid #000;position:relative;overflow:hidden;box-shadow:8px 8px 0 rgba(0,0,0,0.15);">
+        
+        <!-- 标题区 -->
+        <div style="height:80px;border-bottom:2px solid #000;position:relative;overflow:hidden;background:white;padding:12px;">
+            <div style="position:absolute;top:10px;left:12px;font-family:Archivo Black;font-size:38px;font-weight:900;text-transform:uppercase;color:#000;line-height:1;transform:rotate(-1deg);">碳水</div>
+            <div style="position:absolute;top:50px;left:16px;font-family:Space Mono;font-size:9px;letter-spacing:0.3em;">CARBON</div>
+            
+            <div style="position:absolute;top:10px;left:130px;font-family:Archivo Black;font-size:38px;font-weight:900;text-transform:uppercase;color:#000;line-height:1;transform:rotate(1deg);">审计</div>
+            <div style="position:absolute;top:50px;left:138px;font-family:Space Mono;font-size:9px;letter-spacing:0.3em;">AUDIT</div>
+            
+            <div id="yearDisplay" style="position:absolute;top:18px;right:12px;font-family:VT323;font-size:24px;border:2px solid #000;padding:2px 8px;background:#F7E594;">2026</div>
+            <div style="position:absolute;top:45px;left:240px;font-size:16px;animation:spin 6s linear infinite;">✦</div>
+        </div>
+
+        <!-- 两格内容 -->
+        <div style="height:400px;display:grid;grid-template-rows:1fr 1fr;">
+            
+            <!-- 上格：奶油黄 BREADIE_CASHBACK -->
+            <div style="border-bottom:2px solid #000;position:relative;padding:20px;overflow:hidden;background:#F7E594;">
+                <div style="position:absolute;top:16px;right:16px;font-size:24px;animation:spin 6s linear infinite;">✦</div>
+                <div style="position:absolute;bottom:16px;left:16px;font-family:Archivo Black;font-size:48px;opacity:0.06;transform:rotate(-15deg);">k</div>
+                
+                <div style="font-family:Space Mono;font-weight:700;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;border:1.5px solid #000;padding:3px 8px;background:white;display:inline-block;transform:rotate(-1deg);margin-bottom:12px;">BREADIE_CASHBACK</div>
+                
+                <div style="margin:12px 0;display:flex;align-items:center;gap:12px;">
+                    <span id="calDisplay" style="font-family:VT323;font-size:72px;line-height:0.8;color:#000;">16,800</span>
+                    <span style="font-family:Archivo Black;font-size:36px;color:#570301;display:inline-block;animation:bounce 1.2s infinite;">+</span>
+                </div>
+                
+                <div id="cashText" style="font-family:Space Mono;font-weight:700;font-size:11px;line-height:1.5;color:#000;border-left:3px solid #000;padding-left:8px;max-width:300px;">
+                    JACKPOT! 你的账户里堆满了 16800 kcal 的结余。店长建议你：不要犹豫，立刻提现！明天去吃那个最重磅的可颂，这顿算店长请你的！🥐✨
+                </div>
+                
+                <div style="margin-top:12px;display:flex;gap:6px;">
+                    <span style="font-family:Space Mono;font-size:8px;border:1.5px solid #000;padding:2px 6px;background:white;font-weight:700;">kcal</span>
+                    <span style="font-family:Space Mono;font-size:8px;border:1.5px solid #000;padding:2px 6px;background:white;font-weight:700;">结余</span>
+                </div>
+            </div>
+
+            <!-- 下格：天空蓝 BREAD_BUDDY_FORCE -->
+            <div style="position:relative;padding:20px;overflow:hidden;background:#BAD6FD;">
+                <div style="font-family:Space Mono;font-weight:700;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;border:1.5px solid #000;padding:3px 8px;background:#BAD6FD;color:#000;display:inline-block;transform:rotate(2deg);margin-bottom:12px;">BREAD_BUDDY_FORCE</div>
+                
+                <div style="margin:8px 0;font-family:Archivo Black;line-height:0.85;">
+                    <span style="display:block;font-size:22px;transform:rotate(-3deg) translateX(-5px);color:white;-webkit-text-stroke:1px rgba(0,0,0,0.3);">Drunk Baker</span>
+                    <span style="display:block;font-size:20px;transform:rotate(-1deg) translateX(8px);color:rgba(255,255,255,0.7);">Drunk Baker</span>
+                    <span style="display:block;font-size:18px;transform:rotate(2deg) translateX(18px);color:rgba(255,255,255,0.4);">Drunk Baker</span>
+                </div>
+                
+                <div style="font-family:Space Mono;font-size:10px;color:#000;font-weight:700;line-height:1.5;margin-top:12px;max-width:300px;">
+                    Drunk Baker！他们凭香气吸干了你的钱包。店长怀疑你身上有他们家的磁铁？🧲 下次去记得问他们要个 VIP 位！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生成按钮 -->
+    <button onclick="alert('生成海报功能开发中')" style="display:block;margin:20px auto;padding:12px 32px;background:#1A1A1A;color:white;border:2px solid #1A1A1A;font-family:Space Mono;font-size:11px;font-weight:700;letter-spacing:0.1em;cursor:pointer;">
+        GENERATE POSTER / 生成海报
+    </button>
+
+    <style>
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    </style>
+
+    <script>
+        const states = [
+            { month: 'MAR 2026', year: '2026', cal: '16,800', calText: 'JACKPOT! 你的账户里堆满了 16800 kcal 的结余。店长建议你：不要犹豫，立刻提现！明天去吃那个最重磅的可颂，这顿算店长请你的！🥐✨', shop: 'Drunk Baker' },
+            { month: 'FEB 2026', year: '2026', cal: '0', calText: '本月还没有记录<br>快去捕捉面包吧！', shop: '???' },
+            { month: 'JAN 2026', year: '2026', cal: '2,400', calText: 'BOOM! 碳水信用炸裂！本月热情溢出。建议下周多去遛弯，或者分一半面包给店长吃！☁️', shop: 'Basdban' }
+        ];
+        let stateIndex = 0;
+
+        function changeMonth(delta) {
+            stateIndex = (stateIndex + delta + states.length) % states.length;
+            const s = states[stateIndex];
+            document.getElementById('monthDisplay').textContent = s.month;
+            document.getElementById('yearDisplay').textContent = s.year;
+            document.getElementById('calDisplay').textContent = s.cal;
+            document.getElementById('cashText').innerHTML = s.calText;
+            
+            // 更新重复店名
+            const repeatLines = document.querySelectorAll('#highlightPanel div[style*="line-height:0.85"] span');
+            repeatLines.forEach((el, i) => {
+                el.textContent = s.shop;
+            });
+        }
+    </script>
+</div>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[var(--cream)] border-t-2 border-black px-6 py-3 flex justify-around items-center z-50">
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='index.html'">
+            <span class="text-xl">📅</span><span class="text-[10px]">日期</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='stats.html'">
+            <span class="text-xl">📊</span><span class="text-[10px]">统计</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer text-[var(--blue)]" onclick="location.href='poster.html'">
+            <span class="text-xl">🥨</span><span class="text-[10px]">分享</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='settings.html'">
+            <span class="text-xl">⚙️</span><span class="text-[10px]">设置</span>
+        </div>
+    </nav>
+
+    <script>
+        let breadItems = [];
+        let currentTab = 'collection';
+        // R&D Lab Variables
+        let currentMode = 'A';
+        let mainImgData = null;
+        let currentStep = { code: 'PROCESS', desc: '点击上方胶囊按钮选择当前烘焙步骤，或输入自定义备注记录详细过程...' };
+
+        // 音效管理 - 已禁用
+        function playSFX(name) {
+            // 静音模式：不播放音效
+            return;
+        }
+
+        const STEPS_A = [
+            { id: '01', zh: '物料准备', en: 'INGREDIENTS', dzh: '称量并准备所有原材料', den: 'Mise en place' },
+            { id: '02', zh: '水合混面', en: 'AUTOLYSE', dzh: '面粉与水充分混合静置', den: 'Gluten development' },
+            { id: '03', zh: '主发酵', en: 'BULK FERMENT', dzh: '控制温度观察体积变化', den: 'Monitor aeration' },
+            { id: '04', zh: '高温烘焙', en: 'OVEN SPRING', dzh: '石板预热蒸汽烘烤', den: 'Final expansion' }
+        ];
+
+        let imgDataA = {};
+
+        // Tab切换
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.getElementById(tab + 'Panel').classList.remove('hidden');
+            
+            // 关键修复：如果是自制研发页，确保立即渲染输入框
+            if (tab === 'rd') {
+                renderInputs();
+                renderModeA(); // 同时也确保预览区域渲染正常
+            }
+        }
+
+        // Mode切换
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeA').classList.toggle('active', mode === 'A');
+            document.getElementById('modeB').classList.toggle('active', mode === 'B');
+            document.getElementById('previewA').style.display = mode === 'A' ? 'grid' : 'none';
+            document.getElementById('previewB').style.display = mode === 'B' ? 'block' : 'none';
+            
+            // 确保渲染对应的模式
+            if (mode === 'A') {
+                renderModeA();
+            }
+            
+            renderInputs();
+        }
+
+        function renderModeA() {
+            const poster = document.getElementById('previewA');
+            poster.innerHTML = STEPS_A.map((step, i) => `
+                <div class="grid-cell" id="cellA${i+1}">
+                    <div class="grid-content">
+                        <div>
+                            <div class="step-num">${step.id}</div>
+                            <div class="title-group">
+                                <div class="step-title-zh" id="pA_zh_${i+1}">${step.zh}</div>
+                                <div class="step-title-en" id="pA_en_${i+1}">${step.en}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="step-desc" id="pA_dzh_${i+1}">${step.dzh}</div>
+                            <div class="step-desc-en" id="pA_den_${i+1}">${step.den}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderInputs() {
+            const container = document.getElementById('inputContainer');
+
+            if (currentMode === 'A') {
+                container.innerHTML = `
+                    <div class="border-b border-gray-100 pb-2 flex justify-between items-center">
+                        <span class="text-xs font-bold font-fun">四步录入 / 4 STEPS</span>
+                        <button onclick="fillExampleA()" class="text-[10px] font-bold text-[var(--blue)] underline">✨ 示例</button>
+                    </div>
+                ` + STEPS_A.map((step, i) => {
+                    const idx = i + 1;
+                    return `
+                    <div class="space-y-3 pb-6 ${idx < 4 ? 'border-b border-gray-100' : ''}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl font-bold opacity-20">${step.id}</span>
+                            <span class="text-[10px] font-bold opacity-40 uppercase">Step ${step.id}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="iA_zh_${idx}" value="${step.zh}" class="input-field" oninput="syncA(${idx})">
+                            <input type="text" id="iA_en_${idx}" value="${step.en}" class="input-field" style="font-family:Space Mono;font-size:11px;" oninput="syncA(${idx})">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <textarea id="iA_dzh_${idx}" class="input-field h-14 resize-none" oninput="syncA(${idx})">${step.dzh}</textarea>
+                            <textarea id="iA_den_${idx}" class="input-field h-14 resize-none" style="font-family:Space Mono;font-size:10px;" oninput="syncA(${idx})">${step.den}</textarea>
+                        </div>
+                        <button onclick="document.getElementById('fA${idx}').click()" class="w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-[10px] font-bold bg-[var(--cream)] text-[var(--blue)]">📷 UPLOAD 3:5</button>
+                        <input type="file" id="fA${idx}" class="hidden" accept="image/*" onchange="handleImgA(${idx}, event)">
+                    </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="pb-4 border-b border-gray-100">
+                        <div class="capsule-label">BATCH INFO / 批次信息</div>
+                        <div class="flex gap-2">
+                            <input type="text" id="batchDate" value="2026_0315" class="input-field" style="flex:1;" oninput="updateBatch()">
+                            <input type="text" id="batchNum" value="01" class="input-field" style="width:60px;" oninput="updateBatch()">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="capsule-label">QUICK SELECT / 快速选择</div>
+
+                        <div class="capsule-group">
+                            <div class="capsule-label">准备 PREP</div>
+                            <span class="capsule" onclick="selectStep('INGREDIENTS', '物料准备完成，所有原材料已精确称量')">Ingredients Check</span>
+                            <span class="capsule" onclick="selectStep('LEVAIN', '酵种达到巅峰状态，活力充沛，准备入面')">Levain Peak</span>
+                        </div>
+
+                        <div class="capsule-group">
+                            <div class="capsule-label">操作 OP</div>
+                            <span class="capsule" onclick="selectStep('AUTOLYSE', '水合静置，让面粉与水分充分结合，面筋自然形成')">Autolyse</span>
+                            <span class="capsule" onclick="selectStep('MIX', '混面揉合，面团逐渐光滑有弹性')">Mix & Knead</span>
+                            <span class="capsule" onclick="selectStep('SF', '拉伸折叠，强化面筋结构，增加面团张力')">Stretch & Fold</span>
+                        </div>
+
+                        <div class="capsule-group">
+                            <div class="capsule-label">发酵 FERM</div>
+                            <span class="capsule" onclick="selectStep('BULK', '主发酵进行中，控制温度观察体积膨胀至1.8-2倍')">Bulk Fermentation</span>
+                            <span class="capsule" onclick="selectStep('COLD', '冷藏发酵，低温慢速熟成，风味深度发展')">Cold Retard</span>
+                        </div>
+
+                        <div class="capsule-group">
+                            <div class="capsule-label">完成 FIN</div>
+                            <span class="capsule" onclick="selectStep('SCORING', '割包完成，纹路清晰美观，引导烘烤膨胀方向')">Scoring</span>
+                            <span class="capsule" onclick="selectStep('BAKING', '高温烘烤，蒸汽辅助，金黄酥脆完美出炉')">Baking</span>
+                        </div>
+                    </div>
+
+                    <div class="pb-4 border-b border-gray-100">
+                        <div class="capsule-label">MAIN PHOTO / 主图 (3:5)</div>
+                        <button onclick="document.getElementById('mainFile').click()" class="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-[12px] font-bold bg-[var(--cream)] text-[var(--blue)]">📷 UPLOAD 3:5 PHOTO</button>
+                        <input type="file" id="mainFile" class="hidden" accept="image/*" onchange="handleMainImg(event)">
+                    </div>
+
+                    <div>
+                        <div class="capsule-label">CUSTOM / 自定义</div>
+                        <input type="text" id="customStep" placeholder="步骤代码 (如: AUTO)" class="input-field mb-2" oninput="updateCustom()">
+                        <textarea id="customDesc" placeholder="备注..." class="input-field h-20 resize-none" oninput="updateCustom()" style="font-size:11px;"></textarea>
+                        <div class="text-[9px] opacity-40 mt-1">支持长文本，海报上会自动缩小显示</div>
+                    </div>
+                `;
+            }
+        }
+
+        function syncA(idx) {
+            document.getElementById('pA_zh_' + idx).innerText = document.getElementById('iA_zh_' + idx).value;
+            document.getElementById('pA_en_' + idx).innerText = document.getElementById('iA_en_' + idx).value;
+            document.getElementById('pA_dzh_' + idx).innerText = document.getElementById('iA_dzh_' + idx).value;
+            document.getElementById('pA_den_' + idx).innerText = document.getElementById('iA_den_' + idx).value;
+        }
+
+        function handleImgA(idx, e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 静音模式：不播放音效
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    imgDataA[idx] = evt.target.result;
+                    const cell = document.getElementById('cellA' + idx);
+                    let img = cell.querySelector('img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        cell.insertBefore(img, cell.firstChild);
+                    }
+                    img.src = evt.target.result;
+                    const crunchList = ['crunch1', 'crunch2', 'crunch3', 'crunch4'];
+                    playSFX(crunchList[Math.floor(Math.random() * 4)]);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function fillExampleA() {
+            const examples = [
+                { zh: '物料准备', en: 'INGREDIENTS', dzh: 'T65面粉500g，水350g，鲁邦种100g，盐10g', den: 'T65 500g, water 350g' },
+                { zh: '水合混面', en: 'AUTOLYSE', dzh: '面粉与水混合，静置45分钟', den: 'Rest 45min for gluten' },
+                { zh: '主发酵', en: 'BULK FERMENT', dzh: '折叠4次，发酵4小时至1.8倍', den: '4 folds, 4h proof' },
+                { zh: '高温烘焙', en: 'OVEN SPRING', dzh: '230°C蒸汽烤20分钟', den: 'Steam bake 230C' }
+            ];
+
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('iA_zh_' + i).value = examples[i-1].zh;
+                document.getElementById('iA_en_' + i).value = examples[i-1].en;
+                document.getElementById('iA_dzh_' + i).value = examples[i-1].dzh;
+                document.getElementById('iA_den_' + i).value = examples[i-1].den;
+                syncA(i);
+            }
+        }
+
+        function updateBatch() {
+            const date = document.getElementById('batchDate').value;
+            const num = document.getElementById('batchNum').value;
+            document.getElementById('batchNo').innerText = '[BATCH_NO. ' + date + '_' + num + ']';
+        }
+
+        function selectStep(code, desc) {
+            // 静音模式：不播放音效
+            
+            currentStep = { code: code, desc: desc };
+            document.getElementById('customStep').value = code;
+            document.getElementById('customDesc').value = desc;
+            updatePreviewB();
+        }
+
+        function updateCustom() {
+            currentStep.code = document.getElementById('customStep').value || 'PROCESS';
+            currentStep.desc = document.getElementById('customDesc').value || '点击胶囊按钮选择当前步骤';
+            updatePreviewB();
+        }
+
+        function updatePreviewB() {
+            document.getElementById('processBig').innerText = currentStep.code;
+
+            const descEl = document.getElementById('processDesc');
+            const text = currentStep.desc;
+
+            if (text.length > 120) {
+                descEl.style.fontSize = '7px';
+                descEl.style.lineHeight = '1.5';
+            } else if (text.length > 80) {
+                descEl.style.fontSize = '8px';
+                descEl.style.lineHeight = '1.6';
+            } else if (text.length > 40) {
+                descEl.style.fontSize = '9px';
+                descEl.style.lineHeight = '1.7';
+            } else {
+                descEl.style.fontSize = '9px';
+                descEl.style.lineHeight = '1.7';
+            }
+
+            descEl.innerText = text;
+        }
+
+        function handleMainImg(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 静音模式：不播放音效
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    mainImgData = evt.target.result;
+                    const container = document.getElementById('previewB');
+                    let img = container.querySelector('img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        container.insertBefore(img, container.firstChild);
+                    }
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ========== IndexedDB 数据库管理 ==========
+        let db;
+
+        // 初始化 IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('BreadieDB', 1);
+                
+                request.onerror = () => reject('数据库打开失败');
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('BreadieDB 初始化成功');
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // 创建面包存储表
+                    if (!db.objectStoreNames.contains('breads')) {
+                        const breadStore = db.createObjectStore('breads', { keyPath: 'id' });
+                        breadStore.createIndex('date', 'date', { unique: false });
+                        breadStore.createIndex('type', 'type', { unique: false });
+                        console.log('创建 breads 表成功');
+                    }
+                    
+                    // 创建设置存储表
+                    if (!db.objectStoreNames.contains('settings')) {
+                        const settingsStore = db.createObjectStore('settings', { keyPath: 'key' });
+                        console.log('创建 settings 表成功');
+                    }
+                    
+                    // 创建成就存储表
+                    if (!db.objectStoreNames.contains('achievements')) {
+                        const achievementsStore = db.createObjectStore('achievements', { keyPath: 'id', autoIncrement: true });
+                        console.log('创建 achievements 表成功');
+                    }
+                };
+            });
+        }
+
+        // 保存数据到 IndexedDB
+        function saveToDB(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readwrite');
+                const store = transaction.objectStore(storeName);
+                
+                if (Array.isArray(data)) {
+                    // 批量保存
+                    const clearRequest = store.clear();
+                    clearRequest.onsuccess = () => {
+                        data.forEach(item => {
+                            store.add(item);
+                        });
+                    };
+                } else {
+                    // 单个保存
+                    const request = store.put(data);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                }
+                
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        // 从 IndexedDB 读取数据
+        function loadFromDB(storeName, query = null) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readonly');
+                const store = transaction.objectStore(storeName);
+                
+                if (query) {
+                    const request = store.index(query.index).getAll(query.value);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                } else {
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                }
+            });
+        }
+
+        // 数据迁移：从 localStorage 迁移到 IndexedDB
+        async function migrateFromLocalStorage() {
+            console.log('开始数据迁移...');
+            
+            try {
+                // 迁移面包数据
+                const oldBreads = localStorage.getItem('breadie_breads');
+                if (oldBreads) {
+                    const breads = JSON.parse(oldBreads);
+                    if (breads.length > 0) {
+                        await saveToDB('breads', breads);
+                        console.log(`迁移了 ${breads.length} 条面包记录`);
+                    }
+                    localStorage.removeItem('breadie_breads');
+                }
+                
+                // 迁移设置数据
+                const oldSettings = localStorage.getItem('breadie_settings');
+                if (oldSettings) {
+                    const settings = JSON.parse(oldSettings);
+                    await saveToDB('settings', { key: 'user_settings', value: settings });
+                    console.log('迁移了用户设置');
+                    localStorage.removeItem('breadie_settings');
+                }
+                
+                // 迁移成就数据
+                const oldAchievements = localStorage.getItem('breadie_achievements');
+                if (oldAchievements) {
+                    const achievements = JSON.parse(oldAchievements);
+                    await saveToDB('achievements', achievements);
+                    console.log(`迁移了 ${achievements.length} 个成就`);
+                    localStorage.removeItem('breadie_achievements');
+                }
+                
+                console.log('数据迁移完成！');
+                showToast('数据迁移成功！已升级到新存储系统 🚀');
+                
+            } catch (error) {
+                console.error('数据迁移失败:', error);
+                showToast('数据迁移失败，请刷新页面重试');
+            }
+        }
+
+        // 音效管理 - 已激活
+        function playSFX(name) {
+            const sounds = {
+                'shutter': 'js/assets/shutter.mp3',
+                'crunch1': 'js/assets/crunch1.mp3',
+                'crunch2': 'js/assets/crunch2.mp3',
+                'crunch3': 'js/assets/crunch3.mp3',
+                'crunch4': 'js/assets/crunch4.mp3'
+            };
+            if (sounds[name]) {
+                const audio = new Audio(sounds[name]);
+                audio.volume = 0.2; // 调轻音量到 20%
+                audio.play().catch(() => {});
+            }
+        }
+
+        // 新的保存面包函数（IndexedDB 版本）
+        async function saveBreadToDB(bread) {
+            try {
+                await saveToDB('breads', bread);
+                console.log('面包保存成功:', bread.name);
+                return true;
+            } catch (error) {
+                console.error('面包保存失败:', error);
+                return false;
+            }
+        }
+
+        // 新的加载面包函数（IndexedDB 版本）
+        async function loadBreadsFromDB(date = null) {
+            try {
+                let breads;
+                if (date) {
+                    breads = await loadFromDB('breads', { index: 'date', value: date });
+                } else {
+                    breads = await loadFromDB('breads');
+                }
+                return breads || [];
+            } catch (error) {
+                console.error('面包加载失败:', error);
+                return [];
+            }
+        }
+
+        // Toast 提示函数
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--blue)] text-white px-6 py-3 rounded-full border-2 border-black font-bold z-[400] shadow-[0px_4px_0_0_rgba(0,0,0,0.2)]';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
+        }
+
+        // 碳水收集功能
+        function init() {
+            // 先显示基础结构，延迟渲染复杂组件
+            document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('zh-CN').replace(/\//g, '.');
+            
+            // 延迟显示页面，确保所有资源加载完成
+            setTimeout(() => {
+                document.body.classList.add('is-ready');
+            }, 150);
+            
+            // 添加页面过渡动画
+            document.body.classList.add('fade-in');
+            setTimeout(() => {
+                document.body.classList.add('active');
+            }, 50);
+            
+            // 使用 requestAnimationFrame 延迟渲染复杂组件
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    initComplexComponents();
+                    // 所有 DOM 渲染完成后解除锁定
+                    setTimeout(() => {
+                        document.body.style.visibility = 'visible';
+                    }, 50);
+                }, 100);
+            });
+        }
+        
+        // 分离复杂组件的渲染
+        function initComplexComponents() {
+            // 碳水收集初始数据 - 独立的手动录入模式
+            breadItems = [
+                { id: 1, name: '[ BREADIE ]', shop: '@ PURCHASED AT', price: '( PRICE )', rate: 5, review: 'TASTING NOTES: INPUT DETAILS HERE...', img: null },
+                { id: 2, name: '', shop: '', price: '', rate: 5, review: '', img: null },
+                { id: 3, name: '', shop: '', price: '', rate: 5, review: '', img: null }
+            ];
+            
+            // 初始化数据库（用于碳水收集独立存储）
+            initDB().then(async () => {
+                // 保持初始示例数据，不自动同步其他页面数据
+                
+                // 手动重置开关（仅在控制台设置为 true 时生效）
+                if (window.FORCE_RESET_DB === true) {
+                    console.log('🔄 强制重置数据库...');
+                    try {
+                        await indexedDB.deleteDatabase('BreadieDB');
+                        console.log('✅ 数据库已重置');
+                    } catch (error) {
+                        console.log('❌ 数据库重置失败:', error);
+                    }
+                }
+                
+                // 碳水收集模式：独立运行，不迁移其他页面数据
+                // 注释掉数据迁移，保持碳水收集完全独立
+                // if (localStorage.getItem('breadie_breads') || 
+                //     localStorage.getItem('breadie_settings') || 
+                //     localStorage.getItem('breadie_achievements')) {
+                //     await migrateFromLocalStorage();
+                // }
+                
+                // 碳水收集保持独立，不自动同步其他页面的面包数据
+                console.log('碳水收集模式：独立手动录入，不自动同步');
+                
+                // 渲染界面
+                render();
+                renderPreview();
+                updateSettlement();
+                
+                // 延迟渲染复杂组件，使用 requestIdleCallback 让出主线程
+                if (window.requestIdleCallback) {
+                    requestIdleCallback(() => {
+                        renderModeA();
+                        // 图片处理延迟到页面显示后执行
+                        setTimeout(() => {
+                            optimizeImageLoading();
+                            document.body.style.backdropFilter = '';
+                        }, 200);
+                    }, { timeout: 300 });
+                } else {
+                    // 降级方案：使用 setTimeout
+                    setTimeout(() => {
+                        renderModeA();
+                        // 图片处理延迟到页面显示后执行
+                        setTimeout(() => {
+                            optimizeImageLoading();
+                            document.body.style.backdropFilter = '';
+                        }, 200);
+                    }, 100);
+                }
+                
+            }).catch(error => {
+                console.error('数据库初始化失败，使用强制更新的初始数据:', error);
+            });
+        }
+
+        // 图片加载优化函数
+        function optimizeImageLoading() {
+            // 等待 DOM 稳定后再处理图片
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                if (img.src && img.src.startsWith('data:')) {
+                    // 延迟加载 Base64 图片
+                    img.style.opacity = '0';
+                    setTimeout(() => {
+                        img.style.transition = 'opacity 0.3s ease-in';
+                        img.style.opacity = '1';
+                    }, 50);
+                }
+            });
+        }
+
+        function addBreadItem() {
+            // 静音模式：不播放音效
+            
+            if (breadItems.length >= 3) {
+                alert('最多添加3个面包');
+                return;
+            }
+            // 新面包默认有温暖的数据
+            breadItems.push({ 
+                id: Date.now(), 
+                name: '[ BREADIE ]', 
+                shop: '@ PURCHASED AT', 
+                price: '( PRICE )', 
+                rate: 5, 
+                review: 'TASTING NOTES: INPUT DETAILS HERE...', 
+                img: null 
+            });
+            
+            render();
+        }
+
+        function removeBreadItem(index) {
+            if (breadItems.length <= 1) {
+                alert('至少保留一个面包');
+                return;
+            }
+            breadItems.splice(index, 1);
+            render();
+        }
+
+        async function updateItem(idx, key, val) {
+            // 增强清空时自动设回默认值的逻辑，检测所有旧默认值
+            if (key === 'name') {
+                if (!val || val.trim() === '' || val === '面包' || val === '未命名面包' || val === 'undefined' || val === '好吃' || val === 'y' || val === '未命名' || val === '待命名' || val === 'test') {
+                    val = '[ BREADIE ]';
+                }
+            } else if (key === 'shop') {
+                // 实时同步：检测输入框为空或长度过短时立即恢复为温暖占位符
+                if (!val || val.trim() === '' || val === '未知店铺' || val === 'SHOP' || val === 'undefined' || val === 'test' || val === '店铺' || val.length <= 2 || val === 'yi' || val === 'y' || val === '待定' || val === 'SAMPLE' || val === 'demo') {
+                    val = '@ PURCHASED AT';
+                }
+            } else if (key === 'price') {
+                if (!val || val.trim() === '' || val === '0' || val === '待定' || val === 'test') {
+                    val = '( PRICE )';
+                }
+            }
+            
+            breadItems[idx][key] = val;
+            renderPreview();
+            updateSettlement();
+            
+            // 静音模式：不播放音效
+            
+            // 异步保存到 IndexedDB（字段名完全对齐）
+            try {
+                const breadData = {
+                    id: Date.now() + idx, // 生成唯一ID
+                    name: breadItems[idx].name || '[ 名称 / NAME ]',
+                    shop: breadItems[idx].shop || '[ 购入地点 / LOCATION ]',
+                    price: parseFloat(breadItems[idx].price) || 0,
+                    stars: breadItems[idx].rate || 5,
+                    note: breadItems[idx].review || '',
+                    photo: breadItems[idx].img || null,
+                    date: new Date().toISOString().split('T')[0], // 今天的日期
+                    type: breadItems[idx].shop ? 'purchase' : 'homemade',
+                    breadType: '未知', // 默认类型
+                    calories: 250, // 默认卡路里
+                    rating: 'red', // 默认评分
+                    emoji: '' // 默认表情
+                };
+                
+                await saveBreadToDB(breadData);
+                console.log(`面包 ${idx + 1} 已保存到 IndexedDB`);
+                
+            } catch (error) {
+                console.error('保存到 IndexedDB 失败:', error);
+                showToast('保存失败，请重试');
+            }
+        }
+
+        function handleImg(idx, e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 静音模式：不播放音效
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    breadItems[idx].img = evt.target.result;
+                    render();
+                    renderPreview();
+                    updateSettlement();
+                    const crunchList = ['crunch1', 'crunch2', 'crunch3', 'crunch4'];
+                    playSFX(crunchList[Math.floor(Math.random() * 4)]);
+                    
+                    // 异步保存到 IndexedDB（包含压缩后的图片）
+                    saveCompressedImageToDB(idx, evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 保存压缩图片到 IndexedDB
+        async function saveCompressedImageToDB(idx, imageData) {
+            try {
+                const breadData = {
+                    id: Date.now() + idx,
+                    name: breadItems[idx].name || '',
+                    shop: breadItems[idx].shop || '',
+                    price: parseFloat(breadItems[idx].price) || 0,
+                    stars: breadItems[idx].rate || 5,
+                    note: breadItems[idx].review || '',
+                    photo: imageData, // 使用压缩后的图片
+                    date: new Date().toISOString().split('T')[0],
+                    type: breadItems[idx].shop ? 'purchase' : 'homemade',
+                    breadType: '未知',
+                    calories: 250,
+                    rating: 'red',
+                    emoji: ''
+                };
+                
+                await saveBreadToDB(breadData);
+                console.log(`面包 ${idx + 1} 压缩图片已保存到 IndexedDB`);
+                
+            } catch (error) {
+                console.error('压缩图片保存失败:', error);
+                showToast('图片保存失败，请重试');
+            }
+        }
+
+        // 图片压缩函数
+        function compressImage(file, maxWidth, quality) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // 计算压缩后的尺寸
+                        let { width, height } = img;
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = (height * maxWidth) / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxWidth) {
+                                width = (width * maxWidth) / height;
+                                height = maxWidth;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // 绘制压缩后的图片
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // 导出为 JPEG 格式
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressedDataUrl);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateSettlement() {
+            const count = breadItems.filter(i => i.name).length;
+            const total = breadItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0);
+            document.getElementById('totalItems').innerText = count;
+            document.getElementById('totalAmount').innerText = '¥' + total.toFixed(2);
+        }
+
+        function render() {
+            renderInputsCollection();
+            renderPreview();
+            updateSettlement();
+        }
+
+        function renderInputsCollection() {
+            const container = document.getElementById('inputsContainer');
+            container.innerHTML = breadItems.map((item, i) => {
+                // 确保输入框的值与强制清洗逻辑保持同步
+                let inputName = item.name;
+                let inputShop = item.shop;
+                let inputPrice = item.price;
+                
+                // 对输入框的值也进行强制清洗判断
+                if (!inputName || inputName.trim() === '' || inputName === '面包' || inputName === '未命名面包' || inputName === 'undefined' || inputName === '好吃' || inputName === 'y' || inputName === '未命名' || inputName === '待命名' || inputName === 'test') {
+                    inputName = '[ BREADIE ]';
+                }
+                
+                if (!inputShop || inputShop.trim() === '' || inputShop === '未知店铺' || inputShop === 'SHOP' || inputShop === 'undefined' || inputShop === 'test' || inputShop === '店铺' || inputShop.length <= 2 || inputShop === 'yi' || inputShop === 'y' || inputShop === '待定' || inputShop === 'SAMPLE' || inputShop === 'demo') {
+                    inputShop = '@ PURCHASED AT';
+                }
+                
+                if (!inputPrice || inputPrice === 0 || inputPrice === '0' || String(inputPrice).trim() === '' || inputPrice === 'undefined' || inputPrice === '待定' || inputPrice === 'test') {
+                    inputPrice = '( PRICE )';
+                }
+                
+                return `
+                <div class="p-4 pt-8 border border-gray-100 bg-gray-50 rounded-xl space-y-3 relative" id="bread-item-${i}">
+                    ${breadItems.length > 1 ? `
+                        <button onclick="removeBreadItem(${i})" 
+                                class="absolute top-3 right-3 text-[10px] text-[#E74C3C] font-bold border-b border-[#E74C3C] hover:opacity-70 transition-opacity">
+                            ✕ REMOVE / 删除
+                        </button>` : ''}
+                    <div class="grid grid-cols-4 gap-3">
+                        <div onclick="document.getElementById('file-${i}').click()" class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-white cursor-pointer overflow-hidden">
+                            ${item.img ? `<img src="${item.img}" class="w-full h-full object-cover">` : '<span class="text-xl">📷</span>'}
+                        </div>
+                        <div class="col-span-3 space-y-2">
+                            <input type="text" placeholder="给这枚面团起个名字..." class="input-field" value="${inputName}" oninput="updateItem(${i}, 'name', this.value)">
+                            <input type="text" placeholder="在哪个角落遇见它的？" class="input-field" value="${inputShop}" oninput="updateItem(${i}, 'shop', this.value)">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-3">
+                        <input type="text" placeholder="记录这笔碳水支出 ¥" class="input-field col-span-2" value="${inputPrice}" oninput="updateItem(${i}, 'price', this.value)">
+                        <select class="input-field col-span-3" onchange="updateItem(${i}, 'rate', this.value)">
+                            ${[5,4,3,2,1].map(r => `<option value="${r}" ${item.rate==r?'selected':''}>${'❤️'.repeat(r)}${'🤍'.repeat(5-r)}</option>`).join('')}
+                        </select>
+                    </div>
+                    <textarea placeholder="记录风味细节：比如\"外皮的焦香\"或\"内里的柔软\"..." class="input-field h-12 resize-none" oninput="updateItem(${i}, 'review', this.value)">${item.review}</textarea>
+                    <input type="file" id="file-${i}" class="hidden" accept="image/*" onchange="handleImg(${i}, event)">
+                </div>
+            `;
+            }).join('');
+        }
+
+        function renderPreview() {
+            const container = document.getElementById('listPreview');
+            container.innerHTML = breadItems.map((item, i) => {
+                // 超严格判断逻辑，确保与输入框100%同步，强制使用温暖文案
+                let displayName = item.name;
+                let displayShop = item.shop;
+                let displayPrice = item.price;
+                
+                // name 字段超严格判断 - 检测所有可能的旧默认值
+                if (!displayName || displayName.trim() === '' || displayName === '面包' || displayName === '未命名面包' || displayName === 'undefined' || displayName === '好吃' || displayName === 'y' || displayName === '未命名' || displayName === '待命名' || displayName === 'test' || displayName === 'undefined') {
+                    displayName = '[ BREADIE ]';
+                }
+                
+                // shop 字段超严格判断 - 检测所有可能的旧默认值
+                if (!displayShop || displayShop.trim() === '' || displayShop === '未知店铺' || displayShop === 'SHOP' || displayShop === 'undefined' || displayShop === 'test' || displayShop === '店铺' || displayShop.length <= 2 || displayShop === 'yi' || displayShop === 'y' || displayShop === '待定' || displayShop === 'SAMPLE' || displayShop === 'demo') {
+                    displayShop = '@ PURCHASED AT';
+                }
+                
+                // price 字段超严格判断 - 检测所有可能的旧默认值
+                if (!displayPrice || displayPrice === 0 || displayPrice === '0' || String(displayPrice).trim() === '' || displayPrice === 'undefined' || displayPrice === '待定' || displayPrice === 'test') {
+                    displayPrice = '( PRICE )';
+                }
+                
+                return `
+                <div class="flex gap-6 items-start">
+                    <div class="w-20 aspect-square bg-[#FBFBFB] flex-shrink-0 relative overflow-hidden rounded-sm border border-gray-100">
+                        ${item.img ? `<img src="${item.img}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-3xl opacity-5">🍞</div>'}
+                        <div class="absolute top-0 left-0 bg-black text-white text-[7px] px-1.5 py-0.5 font-mono">ITEM.0${i+1}</div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline border-b border-dotted border-gray-200 pb-1 mb-2">
+                            <h3 class="font-bold text-sm truncate pr-2">${displayName}</h3>
+                            <span class="font-mono text-[10px] opacity-60 flex-shrink-0">¥${displayPrice}</span>
+                        </div>
+                        <p class="text-[8px] tracking-widest opacity-40 uppercase font-bold mb-1">@ ${displayShop}</p>
+                        <div class="flex gap-0.5 mb-1 text-[8px]" style="color: #8B0000;">${'❤️'.repeat(item.rate)}${'🤍'.repeat(5-item.rate)}</div>
+                        <p class="text-[10px] leading-relaxed opacity-60">${item.review || 'TASTING NOTES: INPUT DETAILS HERE...'}</p>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function fillDemo() {
+            const data = [
+                {name: '原味可颂', shop: 'Drunk Baker', price: '22', rate: 5, review: '酥脆香甜，黄油味浓郁'},
+                {name: '无花果法棍', shop: 'La Boulangerie', price: '18', rate: 4, review: '外脆内软，麦香十足'}
+            ];
+            breadItems.forEach((item, i) => { if(data[i]) Object.assign(item, data[i]); });
+            render();
+        }
+
+        
+        // 海报生成功能
+        async function generatePoster() {
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = 'GENERATING...';
+            btn.disabled = true;
+
+            try {
+                if (currentMode === 'A') {
+                    await generateModeA();
+                } else {
+                    await generateModeB();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('生成失败: ' + err.message);
+            }
+
+            btn.innerText = 'GENERATE POSTER / 生成海报';
+            btn.disabled = false;
+        }
+
+        async function generateModeA() {
+            const width = 360;
+            const height = 600;
+            const cellW = 180;
+            const cellH = 300;
+
+            let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">';
+            svg += '<defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(0,0,0,0.4)"/></linearGradient></defs>';
+
+            const colors = ['#1f2937', '#374151', '#4b5563', '#6b7280'];
+
+            for (let i = 1; i <= 4; i++) {
+                const col = (i - 1) % 2;
+                const row = Math.floor((i - 1) / 2);
+                const x = col * cellW;
+                const y = row * cellH;
+
+                const zh = document.getElementById('iA_zh_' + i).value;
+                const en = document.getElementById('iA_en_' + i).value;
+                const dzh = document.getElementById('iA_dzh_' + i).value;
+                const den = document.getElementById('iA_den_' + i).value;
+                const img = imgDataA[i];
+
+                svg += '<g transform="translate(' + x + ',' + y + ')">';
+
+                if (img) {
+                    svg += '<image href="' + img + '" width="' + cellW + '" height="' + cellH + '" preserveAspectRatio="xMidYMid slice"/>';
+                } else {
+                    svg += '<rect width="' + cellW + '" height="' + cellH + '" fill="' + colors[i-1] + '"/>';
+                }
+
+                svg += '<rect width="' + cellW + '" height="' + cellH + '" fill="url(#g)"/>';
+                svg += '<text x="16" y="55" font-size="36" fill="white" font-weight="400" font-family="MiSans, sans-serif">0' + i + '</text>';
+                svg += '<line x1="16" y1="70" x2="16" y2="115" stroke="#002FA7" stroke-width="3"/>';
+                svg += '<text x="28" y="90" font-size="15" fill="white" font-weight="500" font-family="MiSans, sans-serif">' + escapeXml(zh) + '</text>';
+                svg += '<text x="28" y="108" font-size="9" fill="white" opacity="0.8" font-family="Space Mono, monospace">' + escapeXml(en) + '</text>';
+                svg += '<text x="16" y="' + (cellH - 35) + '" font-size="10" fill="white" font-weight="400" font-family="MiSans, sans-serif">' + escapeXml(dzh.substring(0, 16)) + '</text>';
+                svg += '<text x="16" y="' + (cellH - 20) + '" font-size="8" fill="white" opacity="0.7" font-style="italic" font-family="Space Mono, monospace">' + escapeXml(den) + '</text>';
+                svg += '</g>';
+            }
+
+            svg += '</svg>';
+
+            await svgToCanvas(svg, width, height, 'breadie-rd-quad');
+        }
+
+        async function generateModeB() {
+            const width = 360;
+            const height = 600;
+
+            const batchNo = document.getElementById('batchNo').innerText;
+            const stepCode = currentStep.code;
+            const stepDesc = currentStep.desc;
+
+            let descFontSize = '9';
+            let lineHeight = 15;
+            let maxChars = 38;
+            let maxLines = 8;
+
+            if (stepDesc.length > 120) {
+                descFontSize = '7';
+                lineHeight = 12;
+                maxChars = 48;
+                maxLines = 10;
+            } else if (stepDesc.length > 80) {
+                descFontSize = '8';
+                lineHeight = 14;
+                maxChars = 42;
+                maxLines = 9;
+            }
+
+            let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">';
+
+            if (mainImgData) {
+                svg += '<image href="' + mainImgData + '" width="' + width + '" height="' + height + '" preserveAspectRatio="xMidYMid slice"/>';
+            } else {
+                svg += '<rect width="' + width + '" height="' + height + '" fill="#4a5568"/>';
+            }
+
+            svg += '<defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="60%" stop-color="rgba(0,0,0,0.6)"/><stop offset="100%" stop-color="rgba(0,0,0,0.85)"/></linearGradient></defs>';
+            svg += '<rect width="' + width + '" height="' + height + '" fill="url(#g)"/>';
+            svg += '<text x="20" y="30" font-size="9" fill="white" font-family="Space Mono, monospace" letter-spacing="0.05em">@BreadieHug</text>';
+            svg += '<text x="340" y="30" font-size="9" fill="white" text-anchor="end" font-family="Space Mono, monospace" letter-spacing="0.05em">' + escapeXml(batchNo) + '</text>';
+            svg += '<text x="20" y="' + (height - 280) + '" font-size="42" fill="white" font-weight="700" font-family="Futura, Futura PT, Futura Std, Century Gothic, sans-serif" letter-spacing="0.02em">' + escapeXml(stepCode) + '</text>';
+
+            const lines = wrapText(stepDesc, maxChars);
+            let yPos = height - 235;
+            lines.slice(0, maxLines).forEach((line, i) => {
+                svg += '<text x="20" y="' + (yPos + i * lineHeight) + '" font-size="' + descFontSize + '" fill="white" opacity="0.85" font-weight="400" font-family="MiSans, sans-serif">' + escapeXml(line) + '</text>';
+            });
+
+            svg += '<text x="180" y="' + (height - 18) + '" font-size="7" fill="white" opacity="0.5" text-anchor="middle" font-family="Space Mono, monospace" letter-spacing="0.15em">BREADIE HUG LABORATORY</text>';
+            svg += '</svg>';
+
+            await svgToCanvas(svg, width, height, 'breadie-chef-note');
+        }
+
+        async function savePoster() {
+            // 显示所有面包，不过滤
+            const validItems = breadItems;
+            
+            if (validItems.length === 0) {
+                alert('请至少添加一个面包');
+                return;
+            }
+
+            const width = 360;
+            const headerHeight = 70;
+            const itemHeight = 90;
+            const settlementHeight = 100;
+            const footerHeight = 140;
+            
+            // 按实际面包数量计算高度
+            const contentHeight = validItems.length * itemHeight;
+            const height = headerHeight + contentHeight + settlementHeight + footerHeight;
+
+            let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '">';
+            svg += '<rect width="' + width + '" height="' + height + '" fill="white"/>';
+            
+            // 头部
+            const dateStr = new Date().toLocaleDateString('zh-CN').replace(/\//g, '.');
+            svg += '<text x="30" y="35" font-size="9" fill="#999" font-family="Space Mono, monospace">REC-ID: B-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '</text>';
+            svg += '<text x="330" y="35" font-size="9" fill="#999" font-family="Space Mono, monospace" text-anchor="end">DATE: ' + dateStr + '</text>';
+            svg += '<line x1="30" y1="55" x2="330" y2="55" stroke="black" stroke-width="2"/>';
+            
+            // 面包列表（显示所有，包括空的）
+            let y = headerHeight + 10;
+            
+            validItems.forEach((item, i) => {
+                // 图片区域
+                if (item.img) {
+                    svg += '<image href="' + item.img + '" x="30" y="' + y + '" width="70" height="70" preserveAspectRatio="xMidYMid slice"/>';
+                } else {
+                    svg += '<rect x="30" y="' + y + '" width="70" height="70" fill="#f5f5f5"/>';
+                    svg += '<text x="65" y="' + (y + 40) + '" font-size="20" fill="#ddd" text-anchor="middle">🍞</text>';
+                }
+                svg += '<rect x="30" y="' + y + '" width="70" height="70" fill="none" stroke="var(--black)" stroke-width="1"/>';
+                
+                // ITEM 编号
+                svg += '<rect x="30" y="' + y + '" width="35" height="14" fill="black"/>';
+                svg += '<text x="47" y="' + (y + 10) + '" font-size="8" fill="white" font-family="Space Mono, monospace" text-anchor="middle">ITEM.0' + (i+1) + '</text>';
+                
+                // 文字信息（空的显示温暖的占位符文案）
+                const textX = 115;
+                let displayName = item.name;
+                let displayShop = item.shop;
+                let displayPrice = item.price;
+                
+                // 对海报生成也应用强制清洗判断
+                if (!displayName || displayName.trim() === '' || displayName === '面包' || displayName === '未命名面包' || displayName === 'undefined' || displayName === '好吃' || displayName === 'y' || displayName === '未命名' || displayName === '待命名' || displayName === 'test') {
+                    displayName = '[ BREADIE ]';
+                }
+                
+                if (!displayShop || displayShop.trim() === '' || displayShop === '未知店铺' || displayShop === 'SHOP' || displayShop === 'undefined' || displayShop === 'test' || displayShop === '店铺' || displayShop.length <= 2 || displayShop === 'yi' || displayShop === 'y' || displayShop === '待定' || displayShop === 'SAMPLE' || displayShop === 'demo') {
+                    displayShop = '@ PURCHASED AT';
+                }
+                
+                if (!displayPrice || displayPrice === 0 || displayPrice === '0' || String(displayPrice).trim() === '' || displayPrice === 'undefined' || displayPrice === '待定' || displayPrice === 'test') {
+                    displayPrice = '( PRICE )';
+                }
+                
+                svg += '<text x="' + textX + '" y="' + (y + 20) + '" font-size="15" fill="var(--text-color)" font-weight="500" font-family="MiSans, sans-serif">' + escapeXml(displayName) + '</text>';
+                svg += '<text x="330" y="' + (y + 20) + '" font-size="12" fill="var(--text-color)" font-family="Space Mono, monospace" text-anchor="end">¥' + displayPrice + '</text>';
+                svg += '<text x="' + textX + '" y="' + (y + 38) + '" font-size="9" fill="var(--text-color)" font-family="Space Mono, monospace">@ ' + escapeXml(displayShop) + '</text>';
+                
+                // 评分
+                const stars = '❤️'.repeat(item.rate) + '🤍'.repeat(5 - item.rate);
+                svg += '<text x="' + textX + '" y="' + (y + 54) + '" font-size="10" fill="var(--star-color)" font-family="MiSans, sans-serif">' + stars + '</text>';
+                
+                // 评价
+                const displayReview = item.review || 'TASTING NOTES: INPUT DETAILS HERE...';
+                svg += '<text x="' + textX + '" y="' + (y + 70) + '" font-size="9" fill="var(--text-color)" font-family="MiSans, sans-serif">' + escapeXml(displayReview.substring(0, 20)) + (displayReview.length > 20 ? '...' : '') + '</text>';
+                
+                y += itemHeight;
+            });
+            
+            // 结算区域
+            let settleY = headerHeight + contentHeight + 30;
+            svg += '<line x1="30" y1="' + settleY + '" x2="330" y2="' + settleY + '" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>';
+            
+            settleY += 25;
+            const totalCount = validItems.length;
+            const totalPrice = validItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0);
+            
+            svg += '<text x="30" y="' + settleY + '" font-size="10" fill="#999" font-family="MiSans, sans-serif">项目数量 / Items</text>';
+            svg += '<text x="330" y="' + settleY + '" font-size="10" fill="black" font-family="Space Mono, monospace" text-anchor="end">' + totalCount + '</text>';
+            
+            settleY += 22;
+            svg += '<text x="30" y="' + settleY + '" font-size="10" fill="#999" font-family="MiSans, sans-serif">总计金额 / Total</text>';
+            svg += '<text x="330" y="' + settleY + '" font-size="10" fill="black" font-weight="bold" font-family="Space Mono, monospace" text-anchor="end">¥' + totalPrice.toFixed(2) + '</text>';
+            
+            settleY += 22;
+            svg += '<text x="30" y="' + settleY + '" font-size="10" fill="#999" font-family="MiSans, sans-serif">找零 / Change</text>';
+            svg += '<text x="330" y="' + settleY + '" font-size="10" fill="#e74c3c" font-weight="bold" font-family="MiSans, sans-serif" text-anchor="end">100% 的幸福感</text>';
+            
+            // 底部
+            const footerY = height - 100;
+            svg += '<text x="180" y="' + footerY + '" font-size="18" fill="black" font-weight="bold" font-family="MiSans, sans-serif" text-anchor="middle">@BreadieHug</text>';
+            svg += '<text x="180" y="' + (height - 15) + '" font-size="8" fill="#ccc" font-family="Space Mono, monospace" text-anchor="middle" letter-spacing="0.3em">BREADIEHUG*</text>';
+            
+            svg += '</svg>';
+            
+            await svgToCanvas(svg, width, height, 'breadie-collection');
+        }
+
+        async function svgToCanvas(svg, width, height, filename) {
+            const img = new Image();
+            const svgBlob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // 静音模式：不播放音效
+            
+            const link = document.createElement('a');
+            link.download = filename + '-' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            playSFX('shutter');
+            link.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        // 生成后显示预览层
+        function showSaveModal(imageDataUrl) {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+                            <img src="${imageDataUrl}" style="max-width:100%;max-height:70vh;border-radius:8px;">
+                            <p style="color:white;margin-top:20px;font-size:14px;">👆 长按图片 → 存储图像</p>
+                            <button onclick="this.parentElement.remove()" style="margin-top:20px;padding:10px 20px;background:white;border:none;border-radius:20px;">关闭</button>
+                        </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 恢复被删除的 escapeXml 函数！
+        function escapeXml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // 恢复被删除的 wrapText 函数！
+        function wrapText(text, maxLength) {
+            const words = text.split('');
+            const lines = [];
+            let currentLine = '';
+
+            for (let i = 0; i < words.length; i++) {
+                if (currentLine.length + 1 <= maxLength) {
+                    currentLine += words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+            return lines.length > 0 ? lines : [text];
+        }
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

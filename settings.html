@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>面包贴贴 | Breadie Hug</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=VT323&family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/misans@4.0.0/lib/Normal/MiSans-Normal.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #F9F6E5;
+            --cream-light: #FFFDF5;
+            --blue: #002FA7;
+            --black: #1A1A1A;
+            --red: #E74C3C;
+            --yellow: #F4D03F;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--cream);
+            color: var(--black);
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* 页面过渡动画 */
+        .page-transition {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+        
+        .page-transition.active {
+            opacity: 1;
+        }
+
+        .font-lcd { font-family: 'VT323', monospace; }
+
+        .blue-marker {
+            background: var(--blue);
+            color: white;
+            padding: 3px 10px;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            display: inline-block;
+            transform: rotate(-2deg);
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .cute-box {
+            border: 2px solid var(--black);
+            border-radius: 20px;
+            background: var(--cream-light);
+            box-shadow: 4px 4px 0px rgba(0, 47, 167, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .setting-item {
+            background: white;
+            border: 2px solid var(--black);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .setting-item:active {
+            transform: scale(0.98);
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #ddd;
+            border-radius: 14px;
+            position: relative;
+            border: 2px solid var(--black);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--blue);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            border: 2px solid var(--black);
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        .nav-cute {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--cream);
+            border-top: 2px solid var(--black);
+            padding: 12px 32px 28px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 90;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid var(--black);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .danger-zone {
+            border: 2px dashed var(--red);
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .input-cute {
+            width: 100%;
+            background: transparent;
+            border: 2px solid transparent;
+            border-bottom: 2px solid rgba(26, 26, 26, 0.2);
+            padding: 8px 4px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .input-cute:focus {
+            border: 2px solid var(--blue);
+            background: var(--cream);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(249, 246, 229, 0.98);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-box {
+            background: white;
+            border: 2px solid var(--black);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            box-shadow: 8px 8px 0 rgba(0, 47, 167, 0.2);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid var(--black);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+    <script src="js/ui.js"></script>
+</head>
+<body class="page-transition">
+    <!-- 头部 -->
+    <header class="px-5 pt-12 pb-4 flex flex-col items-center text-center">
+        <div class="mb-4">
+            <div class="blue-marker mb-2">SETTINGS_V1.0</div>
+            <h1 class="text-3xl font-bold" style="font-family: 'Archivo Black', sans-serif;"><span class="text-[#1A1A1A]">偏好设置*</span> ⚙️📦</h1>
+            <p class="text-sm opacity-50 mt-1" style="font-family: 'MiSans', sans-serif;">贴贴正在后台理货 / AUDIT DEPT.</p>
+        </div>
+    </header>
+
+    <!-- 用户信息卡片 -->
+    <section class="px-5 mb-6">
+        <div class="cute-box p-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--blue)] rounded-full opacity-10 transform translate-x-8 -translate-y-8"></div>
+            
+            <div class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-4xl border-4 border-[var(--black)] shadow-lg relative z-10 cursor-pointer hover:scale-110 transition-transform overflow-hidden" onclick="changeAvatar()">
+                <img id="userAvatarImg" class="w-full h-full object-cover rounded-full hidden" alt="用户头像">
+                <span id="userAvatarEmoji">🍞</span>
+                <input type="file" id="avatarInput" class="hidden" accept="image/*" onchange="handleAvatarUpload(event)">
+            </div>
+            
+            <h2 class="text-xl font-bold mb-1 cursor-pointer hover:text-[var(--blue)] transition-colors" id="userName" onclick="editUserName()">面包爱好者</h2>
+            <p class="text-sm opacity-50 mb-4" id="userId">ID: 888888</p>
+            
+            <div class="grid grid-cols-3 gap-2">
+                <div class="stat-card !p-3 !border-2">
+                    <div class="font-lcd text-2xl text-[var(--blue)]" id="totalBreads">0</div>
+                    <div class="text-[10px] opacity-50 mt-1">记录总数</div>
+                </div>
+                <div class="stat-card !p-3 !border-2">
+                    <div class="font-lcd text-2xl text-[var(--blue)]" id="totalDays">0</div>
+                    <div class="text-[10px] opacity-50 mt-1">打卡天数</div>
+                </div>
+                <div class="stat-card !p-3 !border-2">
+                    <div class="font-lcd text-2xl text-[var(--blue)]" id="totalHomemade">0</div>
+                    <div class="text-[10px] opacity-50 mt-1">自制次数</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 每日限制设置 -->
+    <section class="px-5 mb-6">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="blue-marker">DAILY_LIMITS</span>
+        </div>
+        
+        <div class="setting-item">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🔥</span>
+                <div>
+                    <div class="font-bold text-sm">卡路里上限</div>
+                    <div class="text-[10px] opacity-50">每日摄入提醒</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="number" id="calorieLimit" class="input-cute w-20" value="2000" onchange="saveSettings()">
+                <span class="text-xs opacity-50">kcal</span>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">💰</span>
+                <div>
+                    <div class="font-bold text-sm">预算上限</div>
+                    <div class="text-[10px] opacity-50">每日花费提醒</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs opacity-50">¥</span>
+                <input type="number" id="budgetLimit" class="input-cute w-20" value="100" onchange="saveSettings()">
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用设置 -->
+    <section class="px-5 mb-6">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="blue-marker">APP_SETTINGS</span>
+        </div>
+        
+        <div class="setting-item" onclick="toggleSetting(this, 'notifications')">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🔔</span>
+                <div>
+                    <div class="font-bold text-sm">每日提醒</div>
+                    <div class="text-[10px] opacity-50">晚上9点记录今日面包</div>
+                </div>
+            </div>
+            <div class="toggle-switch active" data-setting="notifications"></div>
+        </div>
+
+        <div class="setting-item" onclick="toggleSetting(this, 'sound')">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🔊</span>
+                <div>
+                    <div class="font-bold text-sm">音效</div>
+                    <div class="text-[10px] opacity-50">按钮点击反馈音</div>
+                </div>
+            </div>
+            <div class="toggle-switch active" data-setting="sound"></div>
+        </div>
+
+        <div class="setting-item" onclick="toggleSetting(this, 'darkMode')">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🌙</span>
+                <div>
+                    <div class="font-bold text-sm">深色模式</div>
+                    <div class="text-[10px] opacity-50">护眼夜间模式</div>
+                </div>
+            </div>
+            <div class="toggle-switch" data-setting="darkMode"></div>
+        </div>
+    </section>
+
+    <!-- 数据管理 -->
+    <section class="px-5 mb-6">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="blue-marker">DATA_MANAGEMENT</span>
+        </div>
+        
+        <div class="setting-item cursor-pointer hover:bg-[var(--cream)]" onclick="exportData()">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">📥</span>
+                <div>
+                    <div class="font-bold text-sm">导出数据</div>
+                    <div class="text-[10px] opacity-50">CSV格式备份</div>
+                </div>
+            </div>
+            <span class="text-xl opacity-30">→</span>
+        </div>
+
+        <div class="setting-item cursor-pointer hover:bg-[var(--cream)]" onclick="showAchievements()">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🏆</span>
+                <div>
+                    <div class="font-bold text-sm">成就墙</div>
+                    <div class="text-[10px] opacity-50">查看解锁的徽章</div>
+                </div>
+            </div>
+            <span class="text-xl opacity-30">→</span>
+        </div>
+
+        <div class="setting-item cursor-pointer hover:bg-[var(--cream)]" onclick="clearCache()">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🧹</span>
+                <div>
+                    <div class="font-bold text-sm">清理缓存</div>
+                    <div class="text-[10px] opacity-50">释放存储空间</div>
+                </div>
+            </div>
+            <span class="text-xs opacity-50" id="cacheSize">2.4 MB</span>
+        </div>
+    </section>
+
+    <!-- 关于 -->
+    <section class="px-5 mb-6">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="blue-marker">ABOUT</span>
+        </div>
+        
+        <div class="setting-item">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">📱</span>
+                <div>
+                    <div class="font-bold text-sm">版本</div>
+                </div>
+            </div>
+            <span class="text-xs opacity-50">v1.0.0</span>
+        </div>
+
+        <div class="setting-item cursor-pointer hover:bg-[var(--cream)]" onclick="showFeedback()">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">💬</span>
+                <div>
+                    <div class="font-bold text-sm">反馈建议</div>
+                </div>
+            </div>
+            <span class="text-xl opacity-30">→</span>
+        </div>
+
+        <div class="setting-item cursor-pointer hover:bg-[var(--cream)]" onclick="showAbout()">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">❤️</span>
+                <div>
+                    <div class="font-bold text-sm">关于 Breadie Hug</div>
+                </div>
+            </div>
+            <span class="text-xl opacity-30">→</span>
+        </div>
+    </section>
+
+    <!-- 危险区域 -->
+    <section class="px-5 mb-24">
+        <div class="danger-zone">
+            <div class="flex items-center gap-2 mb-3 text-[var(--red)]">
+                <span class="text-xs font-bold">⚠️ DANGER ZONE</span>
+            </div>
+            
+            <button onclick="logout()" class="w-full py-3 border-2 border-[var(--red)] text-[var(--red)] rounded-xl font-bold text-sm hover:bg-[var(--red)] hover:text-white transition-all">
+                886 退出贴贴 �
+            </button>
+        </div>
+    </section>
+
+    <!-- 成就墙模态框 -->
+    <div class="modal" id="achievementModal" onclick="closeModal(event, 'achievementModal')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="font-bold text-lg">🏆 成就墙</span>
+                <button onclick="document.getElementById('achievementModal').classList.remove('active')" class="text-2xl">×</button>
+            </div>
+            <div class="p-4 space-y-3" id="achievementList"></div>
+        </div>
+    </div>
+
+    <!-- 反馈模态框 -->
+    <div class="modal" id="feedbackModal" onclick="closeModal(event, 'feedbackModal')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="font-bold text-lg">💬 反馈建议</span>
+                <button onclick="closeModalManual('feedbackModal')" class="text-2xl">×</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <textarea class="w-full h-32 p-3 border-2 border-[var(--black)] rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[var(--blue)]" placeholder="告诉我们你的想法..."></textarea>
+                <button onclick="submitFeedback()" class="w-full py-3 bg-[var(--blue)] text-white rounded-xl font-bold border-2 border-[var(--black)] shadow-[0px_3px_0_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                    发送反馈
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关于模态框 -->
+    <div class="modal" id="aboutModal" onclick="closeModal(event, 'aboutModal')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="font-bold text-lg">❤️ 关于</span>
+                <button onclick="closeModalManual('aboutModal')" class="text-2xl">×</button>
+            </div>
+            <div class="p-6 text-center space-y-4">
+                <div class="text-6xl mb-2">🍞</div>
+                <h2 class="text-2xl font-bold">Breadie Hug V1.0</h2>
+                <p class="text-sm opacity-60 leading-relaxed">
+                    世界上最治愈的声音，是肚子饿时咬下脆皮的那声"咔嚓"。<br>
+                    愿这本小小的面包日记，能珍藏你所有的快乐瞬间。<br><br>
+                    Made with ❤️ in 2026
+                </p>
+                <div class="text-xs opacity-40 pt-4 border-t border-dashed">
+                    A soft hug for you © 2026 Breadie Hug Team · All Rights Reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[var(--cream)] border-t-2 border-black px-6 py-3 flex justify-around items-center z-50">
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='index.html'">
+            <span class="text-xl">📅</span><span class="text-[10px]">日期</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='stats.html'">
+            <span class="text-xl">📊</span><span class="text-[10px]">统计</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='poster.html'">
+            <span class="text-xl">🥨</span><span class="text-[10px]">分享</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer text-[var(--blue)]" onclick="location.href='settings.html'">
+            <span class="text-xl">⚙️</span><span class="text-[10px]">设置</span>
+        </div>
+    </nav>
+
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        let userData = {};
+        let breads = [];
+
+        // 音效管理
+        function playSFX(name) {
+            // 检查音效开关状态
+            const settings = JSON.parse(localStorage.getItem('breadie_settings') || '{}');
+            // 如果 sound 设置为 false，则直接返回，不执行后续播放逻辑
+            if (settings.sound === false) return;
+
+            const audio = new Audio(`js/assets/${name}.mp3`);
+            audio.currentTime = 0;
+            audio.volume = 0.15; // 调整音量为15%，更小声
+            // 增加一个 Promise 处理，确保即便被拦截也不报错
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("播放被拦截，请先点击页面任意位置", error);
+                });
+            }
+        }
+
+        // 初始化
+        window.onload = function() {
+            // 添加页面过渡动画
+            document.body.classList.add('fade-in');
+            setTimeout(() => {
+                document.body.classList.add('active');
+            }, 50);
+            
+            // 延迟初始化，让出主线程
+            if (window.requestIdleCallback) {
+                requestIdleCallback(() => {
+                    // 检查认证状态
+                    if (!checkAuth()) return;
+                    
+                    loadUserData();
+                    loadSettings();
+                    updateStats();
+                }, { timeout: 300 });
+            } else {
+                setTimeout(() => {
+                    // 检查认证状态
+                    if (!checkAuth()) return;
+                    
+                    loadUserData();
+                    loadSettings();
+                    updateStats();
+                }, 100);
+            }
+        };
+
+        // 加载用户数据
+        function loadUserData() {
+            const user = JSON.parse(localStorage.getItem('userData') || '{}');
+            if (user.name) {
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userId').textContent = 'ID: ' + (user.id?.slice(-6) || '888888');
+            }
+        }
+
+        // 加载设置
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('breadie_settings') || '{}');
+            document.getElementById('calorieLimit').value = settings.calorieLimit || 2000;
+            document.getElementById('budgetLimit').value = settings.budgetLimit || 100;
+            
+            // 加载开关状态
+            ['notifications', 'sound', 'darkMode'].forEach(key => {
+                const value = settings[key] !== undefined ? settings[key] : (key !== 'darkMode');
+                const switchEl = document.querySelector(`[data-setting="${key}"]`);
+                if (switchEl) switchEl.classList.toggle('active', value);
+            });
+            
+            // 加载头像
+            loadAvatar();
+        }
+
+        // 加载头像
+        function loadAvatar() {
+            const settings = JSON.parse(localStorage.getItem('breadie_settings') || '{}');
+            const avatarType = settings.avatarType || 'emoji';
+            const avatarValue = settings.avatarValue || '🍞';
+            
+            if (avatarType === 'image' && avatarValue) {
+                // 显示图片头像
+                document.getElementById('userAvatarImg').src = avatarValue;
+                document.getElementById('userAvatarImg').classList.remove('hidden');
+                document.getElementById('userAvatarEmoji').classList.add('hidden');
+            } else {
+                // 显示emoji头像
+                document.getElementById('userAvatarImg').classList.add('hidden');
+                document.getElementById('userAvatarEmoji').classList.remove('hidden');
+                document.getElementById('userAvatarEmoji').textContent = avatarValue || '🍞';
+            }
+        }
+
+        // 保存设置
+        function saveSettings() {
+            const settings = {
+                calorieLimit: parseInt(document.getElementById('calorieLimit').value) || 2000,
+                budgetLimit: parseInt(document.getElementById('budgetLimit').value) || 100,
+                notifications: document.querySelector('[data-setting="notifications"]')?.classList.contains('active') || false,
+                sound: document.querySelector('[data-setting="sound"]')?.classList.contains('active') || false,
+                darkMode: document.querySelector('[data-setting="darkMode"]')?.classList.contains('active') || false
+            };
+            localStorage.setItem('breadie_settings', JSON.stringify(settings));
+            showToast('设置已保存');
+        }
+
+        // 切换开关
+        function toggleSetting(el, setting) {
+            const switchEl = el.querySelector('.toggle-switch');
+            switchEl.classList.toggle('active');
+            saveSettings();
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            const breads = JSON.parse(localStorage.getItem('breadie_breads') || '[]');
+            const dates = [...new Set(breads.map(b => b.date))];
+            const homemade = breads.filter(b => b.type === 'homemade').length;
+            
+            document.getElementById('totalBreads').textContent = breads.length;
+            document.getElementById('totalDays').textContent = dates.length;
+            document.getElementById('totalHomemade').textContent = homemade;
+        }
+
+        // 导出数据
+        function exportData() {
+            const breads = JSON.parse(localStorage.getItem('breadie_breads') || '[]');
+            if (breads.length === 0) {
+                alert('还没有数据可导出');
+                return;
+            }
+            
+            let csv = '日期,类型,名称,面包类型,店铺,价格,卡路里,评价,星级,备注\n';
+            breads.forEach(b => {
+                csv += `${b.date},${b.type},${b.name},${b.breadType},${b.shop || ''},${b.price || 0},${b.calories},${b.rating},${b.stars},${b.note || ''}\n`;
+            });
+            
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `breadie_export_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showToast('导出成功！');
+        }
+
+        // 清理缓存
+        function clearCache() {
+            if (confirm('确定要清理缓存吗？这不会删除你的面包记录。')) {
+                // 模拟清理
+                document.getElementById('cacheSize').textContent = '0 MB';
+                showToast('缓存已清理');
+            }
+        }
+
+        // 显示成就墙
+        function showAchievements() {
+            const achievements = JSON.parse(localStorage.getItem('breadie_achievements') || '[]');
+            const allAchievements = [
+                { name: '晨间麦香惯例', desc: '连续7天记录', icon: '🌅', got: false },
+                { name: '风味拼图', desc: '记录10种品类', icon: '🧩', got: false },
+                { name: '面团魔法师', desc: '手作成功5次', icon: '👩‍🍳', got: false },
+                { name: '百里挑一的味觉', desc: '红榜超过10个', icon: '👅', got: false }
+            ];
+            
+            achievements.forEach(a => {
+                const idx = allAchievements.findIndex(x => x.name === a.name);
+                if (idx > -1) allAchievements[idx].got = true;
+            });
+            
+            document.getElementById('achievementList').innerHTML = allAchievements.map(a => `
+                <div class="cute-box !p-3 ${a.got ? '' : 'opacity-40 grayscale'}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 ${a.got ? 'bg-[var(--blue)]' : 'bg-gray-300'} rounded-full flex items-center justify-center text-2xl border-2 border-black">${a.icon}</div>
+                        <div class="flex-1">
+                            <p class="font-bold text-sm">${a.name}</p>
+                            <p class="text-[10px] opacity-50 mt-1">${a.desc}</p>
+                        </div>
+                        ${a.got ? '<span class="blue-marker text-[8px]">GET!</span>' : '<span class="text-[10px] font-bold opacity-30">LOCKED</span>'}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('achievementModal').classList.add('active');
+        }
+
+        // 显示反馈
+        function showFeedback() {
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+
+        function submitFeedback() {
+            showToast('感谢你的反馈！');
+            closeModalManual('feedbackModal');
+        }
+
+        // 显示关于
+        function showAbout() {
+            document.getElementById('aboutModal').classList.add('active');
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？数据仍会保留在本地。')) {
+                localStorage.removeItem('userData');
+                showToast('已退出登录');
+                setTimeout(() => window.location.href = 'login.html', 1000);
+            }
+        }
+
+        // 更换头像
+        function changeAvatar() {
+            // 显示选择菜单
+            showAvatarMenu();
+        }
+
+        // 显示头像选择菜单
+        function showAvatarMenu() {
+            const menu = document.createElement('div');
+            menu.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300]';
+            menu.innerHTML = `
+                <div class="bg-white border-2 border-black rounded-2xl p-6 max-w-sm w-full mx-4">
+                    <h3 class="text-lg font-bold mb-4">更换头像</h3>
+                    <div class="space-y-3">
+                        <button onclick="selectEmojiAvatar()" class="w-full py-3 bg-[var(--cream)] border-2 border-black rounded-xl font-bold text-sm hover:bg-[var(--blue)] hover:text-white transition-all">
+                            🎭 选择表情头像
+                        </button>
+                        <button onclick="document.getElementById('avatarInput').click()" class="w-full py-3 bg-white border-2 border-black rounded-xl font-bold text-sm hover:bg-[var(--blue)] hover:text-white transition-all">
+                            📷 上传自定义图片
+                        </button>
+                        <button onclick="removeAvatar()" class="w-full py-3 bg-gray-100 border-2 border-black rounded-xl font-bold text-sm hover:bg-gray-200 transition-all">
+                            🗑️ 移除头像
+                        </button>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" class="w-full py-3 mt-4 text-[var(--blue)] font-bold text-sm">
+                        取消
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(menu);
+        }
+
+        // 选择表情头像
+        function selectEmojiAvatar() {
+            const avatars = ['🍞', '🥐', '🥖', '🥨', '🧁', '🍰', '🍪', '🥯', '🥞', '🍩'];
+            const current = document.getElementById('userAvatarEmoji').textContent;
+            const next = avatars[(avatars.indexOf(current) + 1) % avatars.length];
+            
+            // 隐藏图片头像，显示emoji
+            document.getElementById('userAvatarImg').classList.add('hidden');
+            document.getElementById('userAvatarEmoji').classList.remove('hidden');
+            document.getElementById('userAvatarEmoji').textContent = next;
+            
+            // 清除存储的图片
+            localStorage.removeItem('userAvatarImage');
+            saveAvatarToSettings('emoji', next);
+            
+            this.closest('.fixed')?.remove();
+            showToast('表情头像已更换');
+        }
+
+        // 移除头像
+        function removeAvatar() {
+            document.getElementById('userAvatarImg').classList.add('hidden');
+            document.getElementById('userAvatarEmoji').classList.remove('hidden');
+            document.getElementById('userAvatarEmoji').textContent = '🍞';
+            
+            // 清除存储
+            localStorage.removeItem('userAvatarImage');
+            saveAvatarToSettings('emoji', '🍞');
+            
+            this.closest('.fixed')?.remove();
+            showToast('头像已移除');
+        }
+
+        // 保存头像设置
+        function saveAvatarToSettings(type, value) {
+            const settings = JSON.parse(localStorage.getItem('breadie_settings') || '{}');
+            settings.avatarType = type;
+            settings.avatarValue = value;
+            localStorage.setItem('breadie_settings', JSON.stringify(settings));
+        }
+
+        // 处理头像上传
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('图片大小不能超过5MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgData = e.target.result;
+                
+                // 显示图片头像，隐藏emoji
+                document.getElementById('userAvatarImg').src = imgData;
+                document.getElementById('userAvatarImg').classList.remove('hidden');
+                document.getElementById('userAvatarEmoji').classList.add('hidden');
+                
+                // 保存到localStorage
+                localStorage.setItem('userAvatarImage', imgData);
+                saveAvatarToSettings('image', imgData);
+                
+                showToast('头像上传成功');
+                
+                // 多种方法关闭头像选择菜单
+                setTimeout(() => {
+                    // 方法1: 查找并移除所有匹配的弹窗
+                    const menus = document.querySelectorAll('.fixed.inset-0');
+                    menus.forEach(menu => {
+                        if (menu.querySelector('.bg-white')) {
+                            menu.remove();
+                        }
+                    });
+                    
+                    // 方法2: 直接查找包含特定文本的弹窗
+                    const avatarMenus = document.querySelectorAll('.fixed');
+                    avatarMenus.forEach(menu => {
+                        if (menu.innerHTML.includes('更换头像')) {
+                            menu.remove();
+                        }
+                    });
+                    
+                    // 方法3: 查找所有可能的弹窗容器
+                    const allFixed = document.querySelectorAll('.fixed');
+                    allFixed.forEach(el => {
+                        if (el.style.position === 'fixed' || el.classList.contains('inset-0')) {
+                            const whiteBox = el.querySelector('.bg-white');
+                            if (whiteBox && whiteBox.innerHTML.includes('更换头像')) {
+                                el.remove();
+                            }
+                        }
+                    });
+                }, 300);
+            };
+            reader.readAsDataURL(file);
+            
+            // 清除文件选择
+            event.target.value = '';
+        }
+
+        // 编辑用户昵称
+        function editUserName() {
+            const currentName = document.getElementById('userName').textContent;
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[300]';
+            modal.innerHTML = `
+                <div class="bg-white border-2 border-black rounded-2xl p-6 max-w-sm w-full mx-4">
+                    <h3 class="text-lg font-bold mb-4">修改昵称</h3>
+                    <input type="text" id="nameInput" class="w-full p-3 border-2 border-black rounded-xl text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[var(--blue)]" value="${currentName}" maxlength="20" placeholder="输入你的昵称">
+                    <p class="text-xs opacity-50 mt-2 text-center">最多20个字符</p>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 py-3 bg-gray-100 border-2 border-black rounded-xl font-bold text-sm hover:bg-gray-200 transition-all">
+                            取消
+                        </button>
+                        <button onclick="saveUserName()" class="flex-1 py-3 bg-[var(--blue)] text-white rounded-xl font-bold text-sm border-2 border-black shadow-[0px_3px_0_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // 自动聚焦输入框
+            setTimeout(() => {
+                const input = document.getElementById('nameInput');
+                input.focus();
+                input.select();
+            }, 100);
+            
+            // 回车保存
+            modal.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveUserName();
+                }
+            });
+        }
+
+        // 保存用户昵称
+        function saveUserName() {
+            const newName = document.getElementById('nameInput').value.trim();
+            
+            if (!newName) {
+                showToast('昵称不能为空');
+                return;
+            }
+            
+            if (newName.length > 20) {
+                showToast('昵称不能超过20个字符');
+                return;
+            }
+            
+            // 更新显示
+            document.getElementById('userName').textContent = newName;
+            
+            // 保存到localStorage
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            userData.name = newName;
+            localStorage.setItem('userData', JSON.stringify(userData));
+            
+            // 找到包含修改昵称标题的弹窗并移除
+            const nameModals = document.querySelectorAll('.fixed');
+            nameModals.forEach(modal => {
+                if (modal.innerHTML.includes('修改昵称')) {
+                    modal.remove();
+                }
+            });
+            
+            showToast('昵称已更新');
+        }
+
+        // 关闭弹窗
+        function closeModalManual(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Toast提示
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--blue)] text-white px-6 py-3 rounded-full border-2 border-black font-bold z-[400] shadow-[0px_4px_0_0_rgba(0,0,0,0.2)] text-sm';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
+        }
+    </script>
+</body>
+</html>

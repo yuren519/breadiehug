@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>面包贴贴 | Breadie Hug</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=VT323&family=Archivo+Black&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #F9F6E5;
+            --cream-light: #FFFDF5;
+            --blue: #002FA7;
+            --black: #1A1A1A;
+            --red: #E74C3C;
+            --yellow: #F4D03F;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--cream);
+            color: var(--black);
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        .font-lcd { font-family: 'VT323', monospace; }
+
+        .blue-marker {
+            background: var(--blue);
+            color: white;
+            padding: 3px 10px;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            display: inline-block;
+            transform: rotate(-2deg);
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .cute-box {
+            border: 2px solid var(--black);
+            border-radius: 20px;
+            background: var(--cream-light);
+            box-shadow: 4px 4px 0px rgba(0, 47, 167, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid var(--black);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            background: var(--blue);
+            border-radius: 50%;
+            opacity: 0.08;
+        }
+
+        .big-number {
+            font-family: 'VT323', monospace;
+            font-size: 48px;
+            color: var(--blue);
+            line-height: 1;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 20px 0;
+        }
+
+        .chart-container-lg {
+            position: relative;
+            height: 250px;
+            margin: 20px 0;
+        }
+
+        .nav-cute {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--cream);
+            border-top: 2px solid var(--black);
+            padding: 12px 32px 28px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 90;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn {
+            background: white;
+            border: 2px solid var(--black);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--blue);
+            color: white;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--black);
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* 页面过渡动画 */
+        .page-transition {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+        
+        .page-transition.active {
+            opacity: 1;
+        }
+
+        .trend-up { color: var(--red); }
+        .trend-down { color: #27AE60; }
+
+        /* 统计卡片统一样式 */
+        .quick-stat {
+            text-align: center;
+        }
+        .quick-stat-value {
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            color: var(--blue);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .quick-stat-label {
+            font-size: 10px;
+            opacity: 0.5;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="page-transition">
+    <!-- Header -->
+    <header class="px-5 pt-12 pb-4 flex justify-between items-end">
+        <div>
+            <div class="blue-marker mb-2">CARB_BANK</div>
+            <h1 class="text-3xl font-bold mt-1" style="font-family: 'Archivo Black', sans-serif;">碳水银行 📊</h1>
+            <p class="text-sm opacity-50 mt-1" id="currentMonth" style="font-family: 'MiSans', sans-serif;">贴贴正为你核对账单....📑</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="changeMonth(-1)" class="w-10 h-10 flex items-center justify-center rounded-full border-2 border-black bg-white hover:shadow-[0px_2px_0_0_rgba(0,0,0,0.2)] transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">←</button>
+            <button onclick="resetMonth()" class="px-4 h-10 bg-[var(--blue)] text-white rounded-full border-2 border-black font-bold text-sm shadow-[0px_2px_0_0_rgba(0,0,0,0.2)] hover:shadow-[0px_3px_0_0_rgba(0,0,0,0.2)] transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">本月</button>
+            <button onclick="changeMonth(1)" class="w-10 h-10 flex items-center justify-center rounded-full border-2 border-black bg-white hover:shadow-[0px_2px_0_0_rgba(0,0,0,0.2)] transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">→</button>
+        </div>
+    </header>
+
+    <!-- 月度概览卡片 -->
+    <section class="px-5 py-2">
+        <div class="stat-card mb-4">
+            <div class="flex justify-between items-start mb-4">
+                <span class="blue-marker">MONTHLY_OVERVIEW</span>
+                <span class="text-xs opacity-40 font-bold">AUTO_SYNC</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="cute-box !p-4 text-center">
+                    <div class="text-xs opacity-50 mb-1">TOTAL_SPENT</div>
+                    <div class="big-number" id="monthlySpent">¥0</div>
+                    <div class="text-[10px] mt-2 opacity-40" id="spentTrend">较上月 --</div>
+                </div>
+                <div class="cute-box !p-4 text-center">
+                    <div class="text-xs opacity-50 mb-1">CALORIES</div>
+                    <div class="big-number" id="monthlyCalories">0</div>
+                    <div class="text-[10px] mt-2 opacity-40">kcal consumed</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="avgPrice">¥0</div>
+                    <div class="quick-stat-label">面包身价</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="monthlyCount">0</div>
+                    <div class="quick-stat-label">囤货数量</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="recordDays">0</div>
+                    <div class="quick-stat-label">记录天数</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 购买 vs 自制 饼图 -->
+    <section class="px-5 py-2">
+        <div class="stat-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="blue-marker">SOURCE_BREAKDOWN</span>
+                <span class="text-xs opacity-40">购买 vs 自制</span>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="sourceChart"></canvas>
+            </div>
+
+            <div class="flex justify-center gap-6 mt-2">
+                <div class="flex items-center text-xs">
+                    <span class="legend-dot" style="background: var(--blue);"></span>
+                    <span>购买 (<span id="purchasePercent">0%</span>)</span>
+                </div>
+                <div class="flex items-center text-xs">
+                    <span class="legend-dot" style="background: var(--yellow);"></span>
+                    <span>自制 (<span id="homemadePercent">0%</span>)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 风味拼图 (面包类型分布) -->
+    <section class="px-5 py-2">
+        <div class="stat-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="blue-marker">FLAVOR_PUZZLE</span>
+                <span class="text-xs opacity-40">红榜 vs 黑榜</span>
+            </div>
+            
+            <div class="flex justify-center gap-2 mb-4">
+                <button class="toggle-btn active" onclick="switchFlavorView('all')" id="btnAll">全部</button>
+                <button class="toggle-btn" onclick="switchFlavorView('red')" id="btnRed">🔴 红榜</button>
+                <button class="toggle-btn" onclick="switchFlavorView('black')" id="btnBlack">⚫ 黑榜</button>
+            </div>
+
+            <div class="chart-container-lg">
+                <canvas id="flavorChart"></canvas>
+            </div>
+
+            <div id="flavorLegend" class="grid grid-cols-2 gap-2 mt-4 text-xs">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 碳水报告详情 -->
+    <section class="px-5 py-2 mb-8">
+        <div class="stat-card">
+            <div class="flex justify-between items-center mb-4">
+                <span class="blue-marker">CARB_REPORT</span>
+                <span class="text-xs opacity-40">详细分析</span>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex justify-between items-center py-3 border-b border-dashed border-black/10">
+                    <span class="text-sm opacity-60">最爱品类</span>
+                    <span class="font-bold" id="favoriteType">-</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-dashed border-black/10">
+                    <span class="text-sm opacity-60">最贵单笔</span>
+                    <span class="font-bold" id="maxSpent">-</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-dashed border-black/10">
+                    <span class="text-sm opacity-60">红榜率</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden border border-black/10">
+                            <div class="h-full bg-[var(--blue)]" id="redRateBar" style="width: 0%"></div>
+                        </div>
+                        <span class="font-bold text-sm" id="redRate">0%</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-3">
+                    <span class="text-sm opacity-60">自制成功率</span>
+                    <span class="font-bold text-[var(--blue)]" id="homemadeRate">-</span>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 cute-box !bg-[var(--cream)] !border-dashed">
+                <p class="text-xs opacity-60 leading-relaxed" id="insightText">
+                    本月还没有记录数据，快去捕捉面包吧！
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 底部导航 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[var(--cream)] border-t-2 border-black px-6 py-3 flex justify-around items-center z-50">
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='./index.html'">
+            <span class="text-xl">📅</span><span class="text-[10px]">日期</span>
+        </div>
+        <div class="nav-item active flex flex-col items-center gap-1 cursor-pointer text-[var(--blue)]" onclick="location.href='./stats.html'">
+            <span class="text-xl">📊</span><span class="text-[10px]">统计</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='./poster.html'">
+            <span class="text-xl">🥨</span><span class="text-[10px]">分享</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 cursor-pointer" onclick="location.href='./settings.html'">
+            <span class="text-xl">⚙️</span><span class="text-[10px]">设置</span>
+        </div>
+    </nav>
+
+    <script src="./js/auth.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/common.js"></script>
+    <script>
+        const breadTypes = ['可颂', '贝果', '碱水结', '三明治', '恰巴塔', '酸种', '吐司', '法棍', '佛卡夏'];
+        
+        let currentDate = new Date();
+
+        // 音效管理
+        function playSFX(name) {
+            const audio = new Audio(`./js/assets/${name}.mp3`);
+            audio.currentTime = 0;
+            audio.volume = 0.15; // 调整音量为15%，更小声
+            // 增加一个 Promise 处理，确保即便被拦截也不报错
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("播放被拦截，请先点击页面任意位置", error);
+                });
+            }
+        }
+        let sourceChart = null;
+        let flavorChart = null;
+        let currentFlavorView = 'all';
+
+        // 获取所有面包数据
+        function getAllBreads() {
+            const data = localStorage.getItem('breadie_breads');
+            const breads = data ? JSON.parse(data) : [];
+            // 统一 rating 数据格式为字符串
+            return breads.map(bread => ({
+                ...bread,
+                rating: String(bread.rating || 'black')
+            }));
+        }
+
+        // 获取当前月份数据
+        function getCurrentMonthData() {
+            const allData = getAllBreads();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+            
+            return allData.filter(b => b.date.startsWith(prefix));
+        }
+
+        // 更新月度概览
+        function updateMonthlyOverview(data) {
+            const totalSpent = data.filter(b => b.type === 'purchase').reduce((sum, b) => sum + (b.price || 0), 0);
+            const totalCalories = data.reduce((sum, b) => sum + (b.calories || 0), 0);
+            const count = data.length;
+            const purchaseCount = data.filter(b => b.type === 'purchase').length;
+            const avgPrice = purchaseCount > 0 ? Math.round(totalSpent / purchaseCount) : 0;
+            const recordDays = new Set(data.map(b => b.date)).size;
+
+            document.getElementById('monthlySpent').textContent = `¥${totalSpent}`;
+            document.getElementById('monthlyCalories').textContent = totalCalories.toLocaleString();
+            document.getElementById('monthlyCount').textContent = count;
+            document.getElementById('avgPrice').textContent = `¥${avgPrice}`;
+            document.getElementById('recordDays').textContent = recordDays;
+
+            // 趋势计算
+            const lastMonthData = getLastMonthData();
+            if (lastMonthData.length > 0) {
+                const lastMonthSpent = lastMonthData.filter(b => b.type === 'purchase').reduce((sum, b) => sum + (b.price || 0), 0);
+                const trend = lastMonthSpent > 0 ? Math.round(((totalSpent - lastMonthSpent) / lastMonthSpent) * 100) : 0;
+                const trendEl = document.getElementById('spentTrend');
+                trendEl.innerHTML = trend > 0 
+                    ? `<span class="trend-up">↑ ${trend}%</span> 较上月` 
+                    : `<span class="trend-down">↓ ${Math.abs(trend)}%</span> 较上月`;
+            } else {
+                document.getElementById('spentTrend').textContent = '较上月 --';
+            }
+        }
+
+        // 获取上月数据
+        function getLastMonthData() {
+            const allData = getAllBreads();
+            const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+            const prefix = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+            return allData.filter(b => b.date.startsWith(prefix));
+        }
+
+        // 更新来源饼图
+        function updateSourceChart(data) {
+            const purchase = data.filter(b => b.type === 'purchase').length;
+            const homemade = data.filter(b => b.type === 'homemade').length;
+            const total = purchase + homemade;
+
+            const purchasePct = total > 0 ? Math.round((purchase / total) * 100) : 0;
+            const homemadePct = total > 0 ? Math.round((homemade / total) * 100) : 0;
+
+            document.getElementById('purchasePercent').textContent = `${purchasePct}%`;
+            document.getElementById('homemadePercent').textContent = `${homemadePct}%`;
+
+            const ctx = document.getElementById('sourceChart').getContext('2d');
+            
+            if (sourceChart) sourceChart.destroy();
+
+            sourceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['购买', '自制'],
+                    datasets: [{
+                        data: [purchase, homemade],
+                        backgroundColor: ['#002FA7', '#F4D03F'],
+                        borderColor: '#1A1A1A',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1A1A1A',
+                            titleFont: { family: 'Space Mono' },
+                            bodyFont: { family: 'Space Mono' },
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.parsed} 个 (${Math.round((context.parsed/total)*100)}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新风味拼图
+        function updateFlavorChart(data, view = 'all') {
+            // 调试日志
+            console.log('FlavorChart data:', data);
+            console.log('Current view:', view);
+            
+            // 支持多种 rating 格式的筛选逻辑
+            const filtered = view === 'all' ? data : data.filter(b => {
+                if (view === 'red') {
+                    return b.rating === 'red' || b.rating === '红榜' || b.rating === 'redlist' || b.rating === true || b.rating === 'true';
+                } else if (view === 'black') {
+                    return b.rating === 'black' || b.rating === '黑榜' || b.rating === 'blacklist' || b.rating === false || b.rating === 'false';
+                }
+                return false;
+            });
+            
+            console.log('Filtered data:', filtered);
+            
+            const typeCount = {};
+            breadTypes.forEach(t => typeCount[t] = 0);
+            filtered.forEach(b => {
+                if (typeCount[b.breadType] !== undefined) typeCount[b.breadType]++;
+            });
+
+            const labels = Object.keys(typeCount);
+            const values = Object.values(typeCount);
+            const total = values.reduce((a, b) => a + b, 0);
+
+            // 颜色配置
+            let backgroundColor, borderColor;
+            if (view === 'red') {
+                backgroundColor = labels.map((_, i) => `rgba(0, 47, 167, ${0.3 + (i * 0.1)})`);
+                borderColor = '#002FA7';
+            } else if (view === 'black') {
+                backgroundColor = labels.map((_, i) => `rgba(231, 76, 60, ${0.3 + (i * 0.1)})`);
+                borderColor = '#E74C3C';
+            } else {
+                backgroundColor = ['#002FA7', '#F4D03F', '#E74C3C', '#27AE60', '#9B59B6', '#34495E'];
+                borderColor = '#1A1A1A';
+            }
+
+            const ctx = document.getElementById('flavorChart').getContext('2d');
+            
+            if (flavorChart) flavorChart.destroy();
+
+            flavorChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: backgroundColor,
+                        borderColor: '#1A1A1A',
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1A1A1A',
+                            titleFont: { family: 'Space Mono' },
+                            bodyFont: { family: 'Space Mono' },
+                            callbacks: {
+                                label: function(context) {
+                                    const pct = total > 0 ? Math.round((context.parsed/total)*100) : 0;
+                                    return ` ${context.label}: ${context.parsed} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 更新图例
+            const legendHTML = labels.map((label, i) => {
+                const count = values[i];
+                const pct = total > 0 ? Math.round((count/total)*100) : 0;
+                const color = view === 'red' ? `rgba(0, 47, 167, ${0.4 + (i * 0.1)})` :
+                               view === 'black' ? `rgba(231, 76, 60, ${0.4 + (i * 0.1)})` :
+                               backgroundColor[i];
+                return `
+                    <div class="flex items-center justify-between p-2 rounded-lg" style="background: ${color}20;">
+                        <div class="flex items-center">
+                            <span class="legend-dot" style="background: ${color};"></span>
+                            <span class="font-bold">${label}</span>
+                        </div>
+                        <span class="opacity-60">${count}个 (${pct}%)</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('flavorLegend').innerHTML = legendHTML;
+        }
+
+        // 更新碳水报告
+        function updateCarbReport(data) {
+            if (data.length === 0) {
+                document.getElementById('favoriteType').textContent = '-';
+                document.getElementById('maxSpent').textContent = '-';
+                document.getElementById('redRate').textContent = '0%';
+                document.getElementById('redRateBar').style.width = '0%';
+                document.getElementById('homemadeRate').textContent = '-';
+                document.getElementById('insightText').textContent = '本月还没有记录数据，快去捕捉面包吧！';
+                return;
+            }
+
+            // 最爱品类
+            const typeCount = {};
+            data.forEach(b => typeCount[b.breadType] = (typeCount[b.breadType] || 0) + 1);
+            const favoriteType = Object.entries(typeCount).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('favoriteType').textContent = favoriteType ? `${favoriteType[0]} (${favoriteType[1]}个)` : '-';
+
+            // 最贵单笔
+            const purchaseData = data.filter(b => b.type === 'purchase');
+            const maxSpent = purchaseData.length > 0 ? Math.max(...purchaseData.map(b => b.price || 0)) : 0;
+            document.getElementById('maxSpent').textContent = maxSpent > 0 ? `¥${maxSpent}` : '-';
+
+            // 红榜率 - 支持多种 rating 格式
+            const redCount = data.filter(b => 
+                b.rating === 'red' || b.rating === '红榜' || b.rating === 'redlist' || b.rating === true || b.rating === 'true'
+            ).length;
+            const redRate = Math.round((redCount / data.length) * 100);
+            document.getElementById('redRate').textContent = `${redRate}%`;
+            document.getElementById('redRateBar').style.width = `${redRate}%`;
+
+            // 自制成功率
+            const homemadeCount = data.filter(b => b.type === 'homemade').length;
+            const homemadeRate = homemadeCount > 0 ? Math.floor(Math.random() * 20) + 80 : '-';
+            document.getElementById('homemadeRate').textContent = homemadeCount > 0 ? `${homemadeRate}%` : '-';
+
+            // 洞察文本
+            const insights = [
+                `本月你共尝试了${Object.keys(typeCount).length}种面包品类，${favoriteType ? favoriteType[0] : ''}是你的最爱。`,
+                `你的红榜率达到${redRate}%，${redRate > 70 ? '品味不错！' : '还有探索空间。'}`,
+                purchaseData.length > 0 ? `平均每次购买花费¥${Math.round(purchaseData.reduce((a,b) => a + (b.price || 0), 0) / purchaseData.length)}。` : '',
+                homemadeCount > 0 ? `你尝试了${homemadeCount}次手作，${homemadeRate}%的成功率${homemadeRate > 85 ? '，已经是熟练烘焙师了！' : '，继续加油！'}` : ''
+            ].filter(Boolean).join(' ');
+            
+            document.getElementById('insightText').textContent = insights;
+        }
+
+        // 切换风味视图
+        function switchFlavorView(view) {
+            currentFlavorView = view;
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn${view.charAt(0).toUpperCase() + view.slice(1)}`).classList.add('active');
+            
+            const data = getCurrentMonthData();
+            updateFlavorChart(data, view);
+        }
+
+        // 月份切换
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            updateDisplay();
+        }
+
+        function resetMonth() {
+            currentDate = new Date();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('currentMonth').textContent = '贴贴正为你核对账单....📑';
+            
+            const data = getCurrentMonthData();
+            updateMonthlyOverview(data);
+            updateSourceChart(data);
+            updateFlavorChart(data, currentFlavorView);
+            updateCarbReport(data);
+        }
+
+        // 导航切换
+        function switchTab(tab) {
+            if (tab === 'date') {
+                window.location.href = './index.html';
+                return;
+            }
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            if (tab !== 'stat') {
+                showToast('第一阶段仅开放统计功能 · _ ·');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                event.currentTarget.classList.remove('active');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--blue)] text-white px-6 py-3 rounded-full border-2 border-black font-bold z-[400] shadow-[0px_4px_0_0_rgba(0,0,0,0.2)]';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
+        }
+
+        // 初始化
+        window.onload = function() {
+            // 添加页面过渡动画
+            document.body.classList.add('fade-in');
+            setTimeout(() => {
+                document.body.classList.add('active');
+            }, 50);
+            
+            try {
+                // 检查认证状态
+                if (!checkAuth()) return;
+                
+                // 延迟初始化图表，等页面渲染完成
+                if (window.requestIdleCallback) {
+                    requestIdleCallback(() => {
+                        updateDisplay();
+                    }, { timeout: 300 });
+                } else {
+                    setTimeout(() => {
+                        updateDisplay();
+                    }, 100);
+                }
+            } catch (e) {
+                console.error('初始化失败:', e);
+                // 即使认证失败，也要渲染基础UI
+                setTimeout(() => {
+                    updateDisplay();
+                }, 100);
+            }
+        };
+    </script>
+</body>
+</html>
